@@ -1,55 +1,76 @@
 apiVersion: krew.googlecontainertools.github.com/v1alpha2
 kind: Plugin
 metadata:
-  name: {{ .PluginName }}
+  name: audit
 spec:
-  version: "v0.1.0"
+  version: {{ .TagName }}
   platforms:
   - selector:
       matchLabels:
         os: linux
         arch: amd64
-    uri: https://github.com/{{ .Owner }}/{{ .Repo }}/releases/download/v0.1.0/{{ .PluginName }}_linux_amd64.tar.gz
-    sha256: ""
+    {{addURIAndSha "https://github.com/codenio/kubectl-audit/releases/download/{{ .TagName }}/audit_linux_amd64.tar.gz" .TagName }}
     files:
-    - from: "./{{ .PluginName }}"
-      to: "."
+    - from: audit
+      to: .
     - from: LICENSE
-      to: "."
-    bin: "{{ .PluginName }}"
+      to: .
+    bin: audit
+  - selector:
+      matchLabels:
+        os: linux
+        arch: arm64
+    {{addURIAndSha "https://github.com/codenio/kubectl-audit/releases/download/{{ .TagName }}/audit_linux_arm64.tar.gz" .TagName }}
+    files:
+    - from: audit
+      to: .
+    - from: LICENSE
+      to: .
+    bin: audit
   - selector:
       matchLabels:
         os: darwin
         arch: amd64
-    uri: https://github.com/{{ .Owner }}/{{ .Repo }}/releases/download/v0.1.0/{{ .PluginName }}_darwin_amd64.tar.gz
-    sha256: ""
+    {{addURIAndSha "https://github.com/codenio/kubectl-audit/releases/download/{{ .TagName }}/audit_darwin_amd64.tar.gz" .TagName }}
     files:
-    - from: "./{{ .PluginName }}"
-      to: "."
+    - from: audit
+      to: .
     - from: LICENSE
-      to: "."
-    bin: "{{ .PluginName }}"
+      to: .
+    bin: audit
+  - selector:
+      matchLabels:
+        os: darwin
+        arch: arm64
+    {{addURIAndSha "https://github.com/codenio/kubectl-audit/releases/download/{{ .TagName }}/audit_darwin_arm64.tar.gz" .TagName }}
+    files:
+    - from: audit
+      to: .
+    - from: LICENSE
+      to: .
+    bin: audit
   - selector:
       matchLabels:
         os: windows
         arch: amd64
-    uri: https://github.com/{{ .Owner }}/{{ .Repo }}/releases/download/v0.1.0/{{ .PluginName }}_windows_amd64.zip
-    sha256: ""
+    {{addURIAndSha "https://github.com/codenio/kubectl-audit/releases/download/{{ .TagName }}/audit_windows_amd64.zip" .TagName }}
     files:
-    - from: "/{{ .PluginName }}.exe"
-      to: "."
+    - from: audit.exe
+      to: .
     - from: LICENSE
-      to: "."
-    bin: "{{ .PluginName }}.exe"
-  shortDescription: A new plugin
-  homepage: https://github.com/{{ .Owner }}/{{ .Repo }}
+      to: .
+    bin: audit.exe
+  shortDescription: Run Kubernetes resource audits
+  homepage: https://github.com/codenio/kubectl-audit
   caveats: |
     Usage:
-      $ kubectl {{ .PluginName }}
+      $ kubectl audit
 
     For additional options:
-      $ kubectl {{ .PluginName }} --help
-      or https://github.com/{{ .Owner }}/{{ .Repo }}/blob/v0.1.0/doc/USAGE.md
+      $ kubectl audit --help
+      or https://github.com/codenio/kubectl-audit/blob/{{ .TagName }}/doc/USAGE.md
 
   description: |
-    This is a new plugin
+    Run quick Kubernetes resource audits for common operational issues, including
+    non-running pods, NotReady/SchedulingDisabled nodes, non-Bound PVC/PV,
+    failed jobs, and suspended cronjobs.

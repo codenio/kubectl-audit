@@ -3,22 +3,131 @@ on:
   push:
     tags:
       - 'v*.*.*'
+permissions:
+  contents: write
 jobs:
   goreleaser:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@master
-      - name: Setup Go
-        uses: actions/setup-go@v1
+        uses: actions/checkout@v4
         with:
-          go-version: 1.13
+          fetch-depth: 0
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.22.x"
+          cache: true
       - name: GoReleaser
-        uses: goreleaser/goreleaser-action@v1
+        uses: goreleaser/goreleaser-action@v6
         with:
           version: latest
-          args: release --rm-dist
+          args: release --clean
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Update new version in krew-index
-        uses: rajatjindal/krew-release-bot@v0.0.38
+      - name: Render Krew manifest
+        run: |
+          set -euo pipefail
+          TAG="${{ github.ref_name }}"
+          LINUX_SHA="$(sha256sum dist/audit_linux_amd64.tar.gz | awk '{print $1}')"
+          LINUX_ARM64_SHA="$(sha256sum dist/audit_linux_arm64.tar.gz | awk '{print $1}')"
+          DARWIN_SHA="$(sha256sum dist/audit_darwin_amd64.tar.gz | awk '{print $1}')"
+          DARWIN_ARM64_SHA="$(sha256sum dist/audit_darwin_arm64.tar.gz | awk '{print $1}')"
+          WINDOWS_SHA="$(sha256sum dist/audit_windows_amd64.zip | awk '{print $1}')"
+
+          cat > deploy/krew/audit-release.yaml <<EOF
+          apiVersion: krew.googlecontainertools.github.com/v1alpha2
+          kind: Plugin
+          metadata:
+            name: audit
+          spec:
+            version: ${TAG}
+            platforms:
+              - selector:
+                  matchLabels:
+                    os: linux
+                    arch: amd64
+                uri: https://github.com/codenio/kubectl-audit/releases/download/${TAG}/audit_linux_amd64.tar.gz
+                sha256: "${LINUX_SHA}"
+                files:
+                  - from: audit
+                    to: .
+                  - from: LICENSE
+                    to: .
+                bin: audit
+              - selector:
+                  matchLabels:
+                    os: linux
+                    arch: arm64
+                uri: https://github.com/codenio/kubectl-audit/releases/download/${TAG}/audit_linux_arm64.tar.gz
+                sha256: "${LINUX_ARM64_SHA}"
+                files:
+                  - from: audit
+                    to: .
+                  - from: LICENSE
+                    to: .
+                bin: audit
+              - selector:
+                  matchLabels:
+                    os: darwin
+                    arch: amd64
+                uri: https://github.com/codenio/kubectl-audit/releases/download/${TAG}/audit_darwin_amd64.tar.gz
+                sha256: "${DARWIN_SHA}"
+                files:
+                  - from: audit
+                    to: .
+                  - from: LICENSE
+                    to: .
+                bin: audit
+              - selector:
+                  matchLabels:
+                    os: darwin
+                    arch: arm64
+                uri: https://github.com/codenio/kubectl-audit/releases/download/${TAG}/audit_darwin_arm64.tar.gz
+                sha256: "${DARWIN_ARM64_SHA}"
+                files:
+                  - from: audit
+                    to: .
+                  - from: LICENSE
+                    to: .
+                bin: audit
+              - selector:
+                  matchLabels:
+                    os: windows
+                    arch: amd64
+                uri: https://github.com/codenio/kubectl-audit/releases/download/${TAG}/audit_windows_amd64.zip
+                sha256: "${WINDOWS_SHA}"
+                files:
+                  - from: audit.exe
+                    to: .
+                  - from: LICENSE
+                    to: .
+                bin: audit.exe
+            shortDescription: Run Kubernetes resource audits
+            homepage: https://github.com/codenio/kubectl-audit
+            caveats: |
+              Usage:
+                $ kubectl audit
+
+              For additional options:
+                $ kubectl audit --help
+                or https://github.com/codenio/kubectl-audit/blob/${TAG}/doc/USAGE.md
+
+            description: |
+              Run quick Kubernetes resource audits for common operational issues, including
+              non-running pods, NotReady/SchedulingDisabled nodes, non-Bound PVC/PV,
+              failed jobs, and suspended cronjobs.
+          EOF
+
+          echo "Rendered manifest:"
+          cat deploy/krew/audit-release.yaml
+      - name: Upload rendered Krew manifest
+        uses: softprops/action-gh-release@v2
+        with:
+          files: deploy/krew/audit-release.yaml
+      # First-time krew-index listing must be a manual PR. After `audit` is merged,
+      # uncomment the step below so future tags open krew-index update PRs automatically.
+      # - name: Update new version in krew-index
+      #   uses: rajatjindal/krew-release-bot@v0.0.46
+      #   with:
+      #     krew_template_file: deploy/krew/plugin.yaml

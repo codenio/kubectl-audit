@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/{{ .Owner }}/{{ .Repo }}/cmd/plugin/cli"
-	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp" // required for GKE
+	"github.com/codenio/kubectl-audit/cmd/plugin/cli"
+	_ "k8s.io/client-go/plugin/pkg/client/auth" // load auth providers for client-go
 )
 
 func main() {

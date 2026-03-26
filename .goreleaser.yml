@@ -1,28 +1,36 @@
-project_name: {{ .PluginName }}
+version: 2
+
+project_name: audit
+
 release:
   github:
-    owner: {{ .Owner }}
-    name: {{ .Repo }}
+    owner: codenio
+    name: kubectl-audit
+  # Re-running a tag: GitHub rejects duplicate asset names unless we replace them first.
+  replace_existing_artifacts: true
+
 builds:
-  - id: {{ .PluginName }}
+  - id: audit
     goos:
-    - linux
-    - windows
-    - darwin
+      - linux
+      - windows
+      - darwin
     goarch:
-    - amd64
-    - "386"
+      - amd64
+      - arm64
+      - "386"
     env:
       - CGO_ENABLED=0
       - GO111MODULE=on
     main: cmd/plugin/main.go
-    ldflags: -s -w
-      -X github.com/{{ .Owner }}/{{ .Repo }}/pkg/version.version=
+    ldflags:
+      - -s -w
+
 archives:
-  - id: {{ .PluginName }}
-    builds:
-    - {{ .PluginName }}
-    name_template: {{ `"{{ .ProjectName }}_{{ .Os }}_{{ .Arch }}"` }}
+  - id: audit
+    ids:
+      - audit
+    name_template: "{{ .ProjectName }}_{{ .Os }}_{{ .Arch }}"
     format_overrides:
-    - goos: windows
-      format: zip
+      - goos: windows
+        formats: zip

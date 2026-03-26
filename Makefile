@@ -1,5 +1,7 @@
 
 export GO111MODULE=on
+# If proxy.golang.org times out or resets (common on VPN), Go falls back to direct source fetches.
+export GOPROXY ?= https://proxy.golang.org,direct
 
 .PHONY: test
 test:
@@ -7,7 +9,7 @@ test:
 
 .PHONY: bin
 bin: fmt vet
-	go build -o bin/{{ .PluginName }} github.com/{{ .Owner }}/{{ .Repo }}/cmd/plugin
+	go build -o bin/audit github.com/codenio/kubectl-audit/cmd/plugin
 
 .PHONY: fmt
 fmt:
@@ -27,3 +29,9 @@ kubernetes-deps:
 .PHONY: setup
 setup:
 	make -C setup
+
+.PHONY: install
+install: bin
+	mkdir -p "$(HOME)/.krew/bin"
+	cp bin/audit "$(HOME)/.krew/bin/kubectl-audit"
+	chmod +x "$(HOME)/.krew/bin/kubectl-audit"
