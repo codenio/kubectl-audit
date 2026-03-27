@@ -21,10 +21,8 @@ vet:
 
 .PHONY: kubernetes-deps
 kubernetes-deps:
-	go get k8s.io/client-go@v11.0.0
-	go get k8s.io/api@kubernetes-1.14.0
-	go get k8s.io/apimachinery@kubernetes-1.14.0
-	go get k8s.io/cli-runtime@kubernetes-1.14.0
+	go get k8s.io/client-go@v0.28.4 k8s.io/api@v0.28.4 k8s.io/apimachinery@v0.28.4 \
+		k8s.io/cli-runtime@v0.28.4 k8s.io/kubectl@v0.28.4
 
 .PHONY: setup
 setup:
