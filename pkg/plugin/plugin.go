@@ -11,14 +11,14 @@ import (
 	"k8s.io/client-go/kubernetes"
 )
 
+// podRestartAttentionThreshold is the minimum RestartCount on any container (or init container)
+// that flags a pod for attention even when phase is Running and all containers are Ready.
+const podRestartAttentionThreshold int32 = 5
+
 // AuditOptions configures listing and filtering for audit commands.
 type AuditOptions struct {
 	AllNamespaces bool
 	LabelSelector string
-	// Pod filter flags (optional). If all false, default is phase != Running.
-	PodPending  bool
-	PodFailed   bool
-	PodNotReady bool
 }
 
 func namespaceForQuery(configFlags *genericclioptions.ConfigFlags, allNamespaces bool) (string, error) {
@@ -37,213 +37,249 @@ func auditMetav1ListOptions(o AuditOptions) metav1.ListOptions {
 	return metav1.ListOptions{LabelSelector: o.LabelSelector}
 }
 
-// AuditPods returns pods matching audit criteria as a PodList.
-func AuditPods(configFlags *genericclioptions.ConfigFlags, o AuditOptions) (*corev1.PodList, error) {
+// AuditPods returns pods that need attention as a PodList. totalInScope is len(Items) from the
+// unfiltered list; benignInScope counts running/ready pods without high restart counts.
+func AuditPods(configFlags *genericclioptions.ConfigFlags, o AuditOptions) (*corev1.PodList, int, int, error) {
 	config, err := configFlags.ToRESTConfig()
 	if err != nil {
-		return nil, fmt.Errorf("failed to read kubeconfig: %w", err)
+		return nil, 0, 0, fmt.Errorf("failed to read kubeconfig: %w", err)
 	}
 
 	clientset, err := kubernetes.NewForConfig(config)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create clientset: %w", err)
+		return nil, 0, 0, fmt.Errorf("failed to create clientset: %w", err)
 	}
 
 	namespace, err := namespaceForQuery(configFlags, o.AllNamespaces)
 	if err != nil {
-		return nil, err
+		return nil, 0, 0, err
 	}
 
 	pods, err := clientset.CoreV1().Pods(namespace).List(context.Background(), auditMetav1ListOptions(o))
 	if err != nil {
-		return nil, fmt.Errorf("failed to list pods: %w", err)
+		return nil, 0, 0, fmt.Errorf("failed to list pods: %w", err)
 	}
 
-	filtered := make([]corev1.Pod, 0)
-	for _, pod := range pods.Items {
-		if podMatchesAudit(pod, o) {
-			filtered = append(filtered, pod)
+	totalInScope := len(pods.Items)
+	benignInScope := 0
+	filtered := make([]corev1.Pod, 0, totalInScope)
+	for i := range pods.Items {
+		if podIsBenign(pods.Items[i]) {
+			benignInScope++
+		} else {
+			filtered = append(filtered, pods.Items[i])
 		}
 	}
-	return &corev1.PodList{Items: filtered}, nil
+	return &corev1.PodList{Items: filtered}, totalInScope, benignInScope, nil
 }
 
-func podMatchesAudit(pod corev1.Pod, o AuditOptions) bool {
-	if !o.PodPending && !o.PodFailed && !o.PodNotReady {
-		return pod.Status.Phase != corev1.PodRunning
+// podIsHealthy reports Running phase with all containers ready (desired steady state).
+func podIsHealthy(pod corev1.Pod) bool {
+	if pod.Status.Phase != corev1.PodRunning {
+		return false
 	}
-	if o.PodPending && pod.Status.Phase == corev1.PodPending {
-		return true
+	for _, cs := range pod.Status.ContainerStatuses {
+		if !cs.Ready {
+			return false
+		}
 	}
-	if o.PodFailed && pod.Status.Phase == corev1.PodFailed {
-		return true
+	return true
+}
+
+func podHasHighContainerRestarts(pod corev1.Pod) bool {
+	for _, cs := range pod.Status.ContainerStatuses {
+		if cs.RestartCount >= podRestartAttentionThreshold {
+			return true
+		}
 	}
-	if o.PodNotReady && podIsRunningButNotReady(pod) {
-		return true
+	for _, cs := range pod.Status.InitContainerStatuses {
+		if cs.RestartCount >= podRestartAttentionThreshold {
+			return true
+		}
 	}
 	return false
 }
 
-func podIsRunningButNotReady(pod corev1.Pod) bool {
-	if pod.Status.Phase != corev1.PodRunning {
-		return false
-	}
-	total := len(pod.Spec.Containers)
-	if total == 0 {
-		return false
-	}
-	ready := 0
-	for _, cs := range pod.Status.ContainerStatuses {
-		if cs.Ready {
-			ready++
-		}
-	}
-	return ready < total
+func podIsBenign(pod corev1.Pod) bool {
+	return podIsHealthy(pod) && !podHasHighContainerRestarts(pod)
 }
 
-// AuditNodes returns NotReady or unschedulable nodes as a NodeList.
-func AuditNodes(configFlags *genericclioptions.ConfigFlags, o AuditOptions) (*corev1.NodeList, error) {
+func podNeedsAttention(pod corev1.Pod) bool {
+	return !podIsBenign(pod)
+}
+
+// AuditNodes returns NotReady or unschedulable nodes as a NodeList. benignInScope counts nodes that
+// are Ready and schedulable (healthy).
+func AuditNodes(configFlags *genericclioptions.ConfigFlags, o AuditOptions) (*corev1.NodeList, int, int, error) {
 	config, err := configFlags.ToRESTConfig()
 	if err != nil {
-		return nil, fmt.Errorf("failed to read kubeconfig: %w", err)
+		return nil, 0, 0, fmt.Errorf("failed to read kubeconfig: %w", err)
 	}
 
 	clientset, err := kubernetes.NewForConfig(config)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create clientset: %w", err)
+		return nil, 0, 0, fmt.Errorf("failed to create clientset: %w", err)
 	}
 
 	nodes, err := clientset.CoreV1().Nodes().List(context.Background(), auditMetav1ListOptions(o))
 	if err != nil {
-		return nil, fmt.Errorf("failed to list nodes: %w", err)
+		return nil, 0, 0, fmt.Errorf("failed to list nodes: %w", err)
 	}
 
-	filtered := make([]corev1.Node, 0)
-	for _, node := range nodes.Items {
-		if isNotReadyNode(node) || node.Spec.Unschedulable {
-			filtered = append(filtered, node)
+	totalInScope := len(nodes.Items)
+	benignInScope := 0
+	filtered := make([]corev1.Node, 0, totalInScope)
+	for i := range nodes.Items {
+		if nodeIsHealthy(nodes.Items[i]) {
+			benignInScope++
+		} else {
+			filtered = append(filtered, nodes.Items[i])
 		}
 	}
-	return &corev1.NodeList{Items: filtered}, nil
+	return &corev1.NodeList{Items: filtered}, totalInScope, benignInScope, nil
 }
 
-// AuditPV returns non-Bound persistent volumes as a PersistentVolumeList.
-func AuditPV(configFlags *genericclioptions.ConfigFlags, o AuditOptions) (*corev1.PersistentVolumeList, error) {
+func nodeIsHealthy(node corev1.Node) bool {
+	return !isNotReadyNode(node) && !node.Spec.Unschedulable
+}
+
+// AuditPV returns non-Bound persistent volumes as a PersistentVolumeList. benignInScope counts
+// Bound volumes (healthy in-use storage).
+func AuditPV(configFlags *genericclioptions.ConfigFlags, o AuditOptions) (*corev1.PersistentVolumeList, int, int, error) {
 	config, err := configFlags.ToRESTConfig()
 	if err != nil {
-		return nil, fmt.Errorf("failed to read kubeconfig: %w", err)
+		return nil, 0, 0, fmt.Errorf("failed to read kubeconfig: %w", err)
 	}
 
 	clientset, err := kubernetes.NewForConfig(config)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create clientset: %w", err)
+		return nil, 0, 0, fmt.Errorf("failed to create clientset: %w", err)
 	}
 
 	pvs, err := clientset.CoreV1().PersistentVolumes().List(context.Background(), auditMetav1ListOptions(o))
 	if err != nil {
-		return nil, fmt.Errorf("failed to list pvs: %w", err)
+		return nil, 0, 0, fmt.Errorf("failed to list pvs: %w", err)
 	}
 
-	filtered := make([]corev1.PersistentVolume, 0)
-	for _, pv := range pvs.Items {
-		if pv.Status.Phase != corev1.VolumeBound {
-			filtered = append(filtered, pv)
+	totalInScope := len(pvs.Items)
+	benignInScope := 0
+	filtered := make([]corev1.PersistentVolume, 0, totalInScope)
+	for i := range pvs.Items {
+		if pvs.Items[i].Status.Phase == corev1.VolumeBound {
+			benignInScope++
+		} else {
+			filtered = append(filtered, pvs.Items[i])
 		}
 	}
-	return &corev1.PersistentVolumeList{Items: filtered}, nil
+	return &corev1.PersistentVolumeList{Items: filtered}, totalInScope, benignInScope, nil
 }
 
-// AuditPVC returns non-Bound claims as a PersistentVolumeClaimList.
-func AuditPVC(configFlags *genericclioptions.ConfigFlags, o AuditOptions) (*corev1.PersistentVolumeClaimList, error) {
+// AuditPVC returns non-Bound claims as a PersistentVolumeClaimList. benignInScope counts Bound claims.
+func AuditPVC(configFlags *genericclioptions.ConfigFlags, o AuditOptions) (*corev1.PersistentVolumeClaimList, int, int, error) {
 	config, err := configFlags.ToRESTConfig()
 	if err != nil {
-		return nil, fmt.Errorf("failed to read kubeconfig: %w", err)
+		return nil, 0, 0, fmt.Errorf("failed to read kubeconfig: %w", err)
 	}
 
 	clientset, err := kubernetes.NewForConfig(config)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create clientset: %w", err)
+		return nil, 0, 0, fmt.Errorf("failed to create clientset: %w", err)
 	}
 
 	namespace, err := namespaceForQuery(configFlags, o.AllNamespaces)
 	if err != nil {
-		return nil, err
+		return nil, 0, 0, err
 	}
 
 	pvcs, err := clientset.CoreV1().PersistentVolumeClaims(namespace).List(context.Background(), auditMetav1ListOptions(o))
 	if err != nil {
-		return nil, fmt.Errorf("failed to list pvcs: %w", err)
+		return nil, 0, 0, fmt.Errorf("failed to list pvcs: %w", err)
 	}
 
-	filtered := make([]corev1.PersistentVolumeClaim, 0)
-	for _, pvc := range pvcs.Items {
-		if pvc.Status.Phase != corev1.ClaimBound {
-			filtered = append(filtered, pvc)
+	totalInScope := len(pvcs.Items)
+	benignInScope := 0
+	filtered := make([]corev1.PersistentVolumeClaim, 0, totalInScope)
+	for i := range pvcs.Items {
+		if pvcs.Items[i].Status.Phase == corev1.ClaimBound {
+			benignInScope++
+		} else {
+			filtered = append(filtered, pvcs.Items[i])
 		}
 	}
-	return &corev1.PersistentVolumeClaimList{Items: filtered}, nil
+	return &corev1.PersistentVolumeClaimList{Items: filtered}, totalInScope, benignInScope, nil
 }
 
-// AuditJobs returns failed or backoff/deadline problem jobs as a JobList.
-func AuditJobs(configFlags *genericclioptions.ConfigFlags, o AuditOptions) (*batchv1.JobList, error) {
+// AuditJobs returns failed or backoff/deadline problem jobs as a JobList. benignInScope counts jobs
+// with no failure/backoff/deadline problems.
+func AuditJobs(configFlags *genericclioptions.ConfigFlags, o AuditOptions) (*batchv1.JobList, int, int, error) {
 	config, err := configFlags.ToRESTConfig()
 	if err != nil {
-		return nil, fmt.Errorf("failed to read kubeconfig: %w", err)
+		return nil, 0, 0, fmt.Errorf("failed to read kubeconfig: %w", err)
 	}
 
 	clientset, err := kubernetes.NewForConfig(config)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create clientset: %w", err)
+		return nil, 0, 0, fmt.Errorf("failed to create clientset: %w", err)
 	}
 
 	namespace, err := namespaceForQuery(configFlags, o.AllNamespaces)
 	if err != nil {
-		return nil, err
+		return nil, 0, 0, err
 	}
 
 	jobs, err := clientset.BatchV1().Jobs(namespace).List(context.Background(), auditMetav1ListOptions(o))
 	if err != nil {
-		return nil, fmt.Errorf("failed to list jobs: %w", err)
+		return nil, 0, 0, fmt.Errorf("failed to list jobs: %w", err)
 	}
 
-	filtered := make([]batchv1.Job, 0)
-	for _, job := range jobs.Items {
-		if isProblemJob(job) {
-			filtered = append(filtered, job)
+	totalInScope := len(jobs.Items)
+	benignInScope := 0
+	filtered := make([]batchv1.Job, 0, totalInScope)
+	for i := range jobs.Items {
+		if !isProblemJob(jobs.Items[i]) {
+			benignInScope++
+		} else {
+			filtered = append(filtered, jobs.Items[i])
 		}
 	}
-	return &batchv1.JobList{Items: filtered}, nil
+	return &batchv1.JobList{Items: filtered}, totalInScope, benignInScope, nil
 }
 
-// AuditCronJobs returns suspended cron jobs as a CronJobList (batch/v1).
-func AuditCronJobs(configFlags *genericclioptions.ConfigFlags, o AuditOptions) (*batchv1.CronJobList, error) {
+// AuditCronJobs returns suspended cron jobs as a CronJobList (batch/v1). benignInScope counts
+// CronJobs that are not suspended (desired to run on schedule).
+func AuditCronJobs(configFlags *genericclioptions.ConfigFlags, o AuditOptions) (*batchv1.CronJobList, int, int, error) {
 	config, err := configFlags.ToRESTConfig()
 	if err != nil {
-		return nil, fmt.Errorf("failed to read kubeconfig: %w", err)
+		return nil, 0, 0, fmt.Errorf("failed to read kubeconfig: %w", err)
 	}
 
 	clientset, err := kubernetes.NewForConfig(config)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create clientset: %w", err)
+		return nil, 0, 0, fmt.Errorf("failed to create clientset: %w", err)
 	}
 
 	namespace, err := namespaceForQuery(configFlags, o.AllNamespaces)
 	if err != nil {
-		return nil, err
+		return nil, 0, 0, err
 	}
 
 	cronJobs, err := clientset.BatchV1().CronJobs(namespace).List(context.Background(), auditMetav1ListOptions(o))
 	if err != nil {
-		return nil, fmt.Errorf("failed to list cronjobs: %w", err)
+		return nil, 0, 0, fmt.Errorf("failed to list cronjobs: %w", err)
 	}
 
-	filtered := make([]batchv1.CronJob, 0)
-	for _, cj := range cronJobs.Items {
-		if cj.Spec.Suspend != nil && *cj.Spec.Suspend {
-			filtered = append(filtered, cj)
+	totalInScope := len(cronJobs.Items)
+	benignInScope := 0
+	filtered := make([]batchv1.CronJob, 0, totalInScope)
+	for i := range cronJobs.Items {
+		s := cronJobs.Items[i].Spec.Suspend
+		if s == nil || !*s {
+			benignInScope++
+		} else {
+			filtered = append(filtered, cronJobs.Items[i])
 		}
 	}
-	return &batchv1.CronJobList{Items: filtered}, nil
+	return &batchv1.CronJobList{Items: filtered}, totalInScope, benignInScope, nil
 }
 
 func isNotReadyNode(node corev1.Node) bool {

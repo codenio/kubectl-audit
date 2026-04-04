@@ -1,6 +1,6 @@
 # kubectl-audit
 
-[`kubectl-audit`](https://github.com/codenio/kubectl-audit) is a [`kubectl` plugin](https://kubernetes.io/docs/tasks/extend-kubectl/kubectl-plugins/) that lists Kubernetes resources failing common health checks: stuck pods, unhealthy nodes, unbound volumes, failed jobs, and suspended cron jobs. Output uses the same printers as `kubectl get` (default table, `-o wide`, JSON, YAML, custom columns, Go templates, and more).
+[`kubectl-audit`](https://github.com/codenio/kubectl-audit) is a [`kubectl` plugin](https://kubernetes.io/docs/tasks/extend-kubectl/kubectl-plugins/) that lists Kubernetes resources failing common health checks: unhealthy or crash-prone pods (including high container restarts), unhealthy nodes, unbound volumes, failed jobs, and suspended cron jobs. Output uses the same printers as `kubectl get` (default table, `-o wide`, JSON, YAML, custom columns, Go templates, and more).
 
 ## Contents
 
@@ -9,6 +9,7 @@
 - [Resources and filters](#resources-and-filters)
 - [Output formats](#output-formats)
 - [Examples](#examples)
+  - [Sample output](#sample-output)
 - [Development](#development)
 - [Contributing](#contributing)
 - [Acknowledgments](#acknowledgments)
@@ -67,7 +68,7 @@ Standard `kubectl` config applies: current context, `KUBECONFIG`, `-n` / `--name
 
 | Resource    | Aliases | What is listed |
 | ----------- | ------- | -------------- |
-| `pods`      | `pod`, `po` | By default, pods whose phase is not `Running` (for example `Pending`, `Failed`, `Succeeded`). Use `--pending`, `--failed`, and `--not-ready` to narrow or extend what is shown. |
+| `pods`      | `pod`, `po` | Pods that need attention: phase is not `Running`, any regular container is not `Ready`, **or** any regular or init container has `RestartCount` ≥ **5** (threshold is fixed in code). `Succeeded` / `Completed` job pods are included because they are not in a running steady state. |
 | `nodes`     | `node`, `no` | Nodes that are `NotReady` or have `SchedulingDisabled`. |
 | `pvc`       | `pvcs`, `persistentvolumeclaim`, `persistentvolumeclaims` | PVCs not in `Bound` phase. |
 | `pv`        | `pvs`, `persistentvolume`, `persistentvolumes` | PVs not in `Bound` phase. |
@@ -78,7 +79,8 @@ Standard `kubectl` config applies: current context, `KUBECONFIG`, `-n` / `--name
 
 - **All namespaces:** `-A` or `--all-namespaces` for namespaced resources (`pods`, `pvc`, `jobs`, `cronjobs`).
 - **Labels:** `-l` / `--selector` (same semantics as `kubectl get`).
-- **Pods only:** combine `--pending`, `--failed`, and `--not-ready` to widen which pods are included (`--help` describes each).
+
+There are no separate pod subcommands or `--pending` / `--failed` style switches: one `kubectl audit pods` run applies all pod rules above.
 
 Further notes live in [doc/USAGE.md](doc/USAGE.md).
 
@@ -116,9 +118,86 @@ kubectl audit pv
 kubectl audit job -A
 kubectl audit cj -A
 
-# Pod filters (combine as needed)
-kubectl audit pods --pending --failed --not-ready
 ```
+
+### Sample output
+
+For default and wide output, a **summary** is printed first, then the same table layout as `kubectl get` (including the **RESTARTS** column for pods).
+
+- **total** — resources in scope (full list before the audit filter).
+- **benign** — resources that pass the audit’s “OK” bar for that kind (for **pods**: `Running`, every regular container `Ready`, and no regular or init container has `RestartCount` of 5 or more).
+- **attention** — rows in the filtered result (same as the table below the summary).
+
+If the table is empty, **stderr** states either that nothing of that kind exists in the namespace (or cluster scope), or that **no resources require attention** (resources exist but none matched the audit). **Stdout** still shows the summary line in that case.
+
+Names and namespaces below are **illustrative and masked**.
+
+**Pods** (`kubectl audit pods -A`)
+
+```text
+Pod Audit summary: total = 2000 benign = 1996 attention = 4
+
+NAMESPACE     NAME                                   READY   STATUS             RESTARTS   AGE
+app-demo      web-frontend-7fb2c9-0                   0/1     Pending            0          2m
+app-demo      api-rolling-xyz                         1/1     Running            12         1d
+batch-demo    nightly-sync-abc12                      0/1     Completed          0          88m
+data-demo     indexer-sidecar-xyz                     0/1     Completed          0          17m
+```
+
+*(The Running row is listed because restarts reached the attention threshold; Pending and Completed rows are non-steady-state phases.)*
+
+**Nodes** (`kubectl audit nodes`)
+
+```text
+Node Audit summary: total = 53 benign = 51 attention = 2
+
+NAME               STATUS     ROLES    AGE
+node-worker-b02    NotReady   worker   40d
+node-worker-d04    NotReady   worker   30d
+```
+
+*(Listed nodes are `NotReady` or cordoned `SchedulingDisabled`; benign counts Ready, schedulable nodes.)*
+
+**Persistent volumes** (`kubectl audit pv`)
+
+```text
+PersistentVolume Audit summary: total = 120 benign = 119 attention = 1
+
+NAME              CAPACITY   ACCESS MODES   STATUS      CLAIM
+pv-archive-001    500Gi      RWO            Released    demo-ns/pvc-old-claim
+```
+
+**Persistent volume claims** (`kubectl audit pvc -A`)
+
+```text
+PersistentVolumeClaim Audit summary: total = 45 benign = 43 attention = 2
+
+NAMESPACE    NAME              STATUS    VOLUME
+app-demo     logs-claim-01     Pending
+data-demo    backup-claim-02   Lost
+```
+
+**Jobs** (`kubectl audit jobs -A`)
+
+```text
+Job Audit summary: total = 28 benign = 26 attention = 2
+
+NAMESPACE    NAME               COMPLETIONS   DURATION   AGE
+batch-demo   daily-import       0/1           5m         5m
+batch-demo   retry-migrate      0/1           1h         1h
+```
+
+**CronJobs** (`kubectl audit cronjobs -A`)
+
+```text
+CronJob Audit summary: total = 15 benign = 13 attention = 2
+
+NAMESPACE   NAME               SCHEDULE      SUSPEND   ACTIVE
+ops-demo    pause-backup       0 2 * * *     True      0
+ops-demo    hold-reports       15 * * * *    True      0
+```
+
+For `-o json`, `-o yaml`, and other machine-oriented formats, the summary line is written to **stderr** so you can pipe **stdout** to `jq` or other tools unchanged.
 
 ## Development
 

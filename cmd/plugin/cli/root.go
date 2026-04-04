@@ -29,14 +29,16 @@ func RootCmd() *cobra.Command {
 		Use:   "audit [resource]",
 		Short: "Run cluster audits with kubectl-compatible output",
 		Long: `List Kubernetes resources that fail common health checks, using the same
-output formats as kubectl get (-o wide, json, yaml, custom-columns, go-template, etc.).`,
+output formats as kubectl get (-o wide, json, yaml, custom-columns, go-template, etc.).
+
+For default and wide output, a one-line audit summary (total, benign, attention) is printed
+before the resource table; see the README for sample output per resource.`,
 		Example: `  kubectl audit pods
   kubectl audit pods -o wide
   kubectl audit nodes -o json
   kubectl audit pvc -o yaml
   kubectl audit jobs -o custom-columns=NAME:.metadata.name
-  kubectl audit pods -A --selector app=nginx
-  kubectl audit pods --pending --failed`,
+  kubectl audit pods -A --selector app=nginx`,
 		Args:          cobra.ExactArgs(1),
 		SilenceErrors: true,
 		SilenceUsage:  true,
@@ -50,16 +52,10 @@ output formats as kubectl get (-o wide, json, yaml, custom-columns, go-template,
 				allNS = allNamespacesInArgv()
 			}
 			sel, _ := cmd.Flags().GetString("selector")
-			pending, _ := cmd.Flags().GetBool("pending")
-			failed, _ := cmd.Flags().GetBool("failed")
-			notReady, _ := cmd.Flags().GetBool("not-ready")
 
 			opts := plugin.AuditOptions{
 				AllNamespaces: allNS,
 				LabelSelector: sel,
-				PodPending:    pending,
-				PodFailed:     failed,
-				PodNotReady:   notReady,
 			}
 
 			gk, ok := auditGroupKinds[res]
@@ -67,20 +63,24 @@ output formats as kubectl get (-o wide, json, yaml, custom-columns, go-template,
 				return fmt.Errorf("unknown resource %q", args[0])
 			}
 
-			var obj runtime.Object
+			var (
+				obj           runtime.Object
+				totalInScope  int
+				benignInScope int
+			)
 			switch res {
 			case "pods":
-				obj, err = plugin.AuditPods(KubernetesConfigFlags, opts)
+				obj, totalInScope, benignInScope, err = plugin.AuditPods(KubernetesConfigFlags, opts)
 			case "nodes":
-				obj, err = plugin.AuditNodes(KubernetesConfigFlags, opts)
+				obj, totalInScope, benignInScope, err = plugin.AuditNodes(KubernetesConfigFlags, opts)
 			case "pv":
-				obj, err = plugin.AuditPV(KubernetesConfigFlags, opts)
+				obj, totalInScope, benignInScope, err = plugin.AuditPV(KubernetesConfigFlags, opts)
 			case "pvc":
-				obj, err = plugin.AuditPVC(KubernetesConfigFlags, opts)
+				obj, totalInScope, benignInScope, err = plugin.AuditPVC(KubernetesConfigFlags, opts)
 			case "jobs":
-				obj, err = plugin.AuditJobs(KubernetesConfigFlags, opts)
+				obj, totalInScope, benignInScope, err = plugin.AuditJobs(KubernetesConfigFlags, opts)
 			case "cronjobs":
-				obj, err = plugin.AuditCronJobs(KubernetesConfigFlags, opts)
+				obj, totalInScope, benignInScope, err = plugin.AuditCronJobs(KubernetesConfigFlags, opts)
 			default:
 				return fmt.Errorf("unknown resource %q", res)
 			}
@@ -99,14 +99,24 @@ output formats as kubectl get (-o wide, json, yaml, custom-columns, go-template,
 			}
 
 			if isHumanTableOutput(out) && auditObjectLen(obj) == 0 {
-				writeNoResourcesFound(os.Stderr, res, allNS, KubernetesConfigFlags)
+				total, benign, attention := plugin.SummarizeAudit(totalInScope, benignInScope, obj)
+				WriteAuditSummary(os.Stdout, auditSummaryResourceTitle(res), total, benign, attention)
+				writeAuditEmptyMessage(os.Stderr, res, allNS, KubernetesConfigFlags, totalInScope)
 				return nil
 			}
+
+			total, benign, attention := plugin.SummarizeAudit(totalInScope, benignInScope, obj)
 
 			obj, err = plugin.AsServerTableIfNeeded(KubernetesConfigFlags, res, opts, obj, out)
 			if err != nil {
 				return err
 			}
+
+			summaryDest := os.Stderr
+			if isHumanTableOutput(out) {
+				summaryDest = os.Stdout
+			}
+			WriteAuditSummary(summaryDest, auditSummaryResourceTitle(res), total, benign, attention)
 
 			withNS := withNamespaceColumn(res, allNS)
 			// Server Tables already include a NAMESPACE column when listing cluster-wide. Setting
@@ -121,9 +131,6 @@ output formats as kubectl get (-o wide, json, yaml, custom-columns, go-template,
 
 	cmd.PersistentFlags().BoolP("all-namespaces", "A", false, "If true, check the specified resource across all namespaces")
 	cmd.Flags().StringP("selector", "l", "", "Selector (label query) to filter on, supports '=', '==', and '!='")
-	cmd.Flags().Bool("pending", false, "For pods: include pods in Pending phase (use with --failed / --not-ready to combine)")
-	cmd.Flags().Bool("failed", false, "For pods: include pods in Failed phase (use with other pod flags to combine)")
-	cmd.Flags().Bool("not-ready", false, "For pods: include Running pods that are not fully ready")
 
 	AuditPrintFlags.AddFlags(cmd)
 
@@ -140,6 +147,13 @@ var auditGroupKinds = map[string]schema.GroupKind{
 	"pvc":      {Group: "", Kind: "PersistentVolumeClaim"},
 	"jobs":     {Group: "batch", Kind: "Job"},
 	"cronjobs": {Group: "batch", Kind: "CronJob"},
+}
+
+func auditSummaryResourceTitle(resource string) string {
+	if gk, ok := auditGroupKinds[resource]; ok {
+		return gk.Kind
+	}
+	return "Resource"
 }
 
 // allNamespacesInArgv catches -A / --all-namespaces if pflag/cobra did not (e.g. flag order with
@@ -181,18 +195,56 @@ func auditObjectLen(obj runtime.Object) int {
 	return meta.LenList(obj)
 }
 
-func writeNoResourcesFound(w io.Writer, resource string, allNS bool, cf *genericclioptions.ConfigFlags) {
+// writeAuditEmptyMessage prints a line after an empty audit table. inScopeCount is how many
+// resources were listed before filtering (same basis as the summary total). When it is zero,
+// nothing exists in scope; when positive, resources exist but none match the audit.
+func writeAuditEmptyMessage(w io.Writer, resource string, allNS bool, cf *genericclioptions.ConfigFlags, inScopeCount int) {
+	phrase := auditResourcePhrase(resource)
 	namespaced := resource == "pods" || resource == "pvc" || resource == "jobs" || resource == "cronjobs"
+
+	if inScopeCount > 0 {
+		if namespaced && !allNS {
+			ns, _, err := cf.ToRawKubeConfigLoader().Namespace()
+			if err != nil || ns == "" {
+				fmt.Fprintf(w, "No %s require attention.\n", phrase)
+				return
+			}
+			fmt.Fprintf(w, "No %s require attention in %s namespace.\n", phrase, ns)
+			return
+		}
+		fmt.Fprintf(w, "No %s require attention.\n", phrase)
+		return
+	}
+
 	if namespaced && !allNS {
 		ns, _, err := cf.ToRawKubeConfigLoader().Namespace()
 		if err != nil || ns == "" {
-			fmt.Fprintln(w, "No resources found")
+			fmt.Fprintf(w, "No %s found.\n", phrase)
 			return
 		}
-		fmt.Fprintf(w, "No resources found in %s namespace.\n", ns)
+		fmt.Fprintf(w, "No %s found in %s namespace.\n", phrase, ns)
 		return
 	}
-	fmt.Fprintln(w, "No resources found")
+	fmt.Fprintf(w, "No %s found.\n", phrase)
+}
+
+func auditResourcePhrase(resource string) string {
+	switch resource {
+	case "pods":
+		return "pods"
+	case "nodes":
+		return "nodes"
+	case "pv":
+		return "persistent volumes"
+	case "pvc":
+		return "persistent volume claims"
+	case "jobs":
+		return "jobs"
+	case "cronjobs":
+		return "cron jobs"
+	default:
+		return "resources"
+	}
 }
 
 func normalizeResource(s string) (string, error) {
