@@ -136,16 +136,6 @@ kubectl audit cj -A
 
 ### Sample output
 
-For default and wide output, stdout matches this layout: two `-------------------------------------------------------` lines (55 hyphens, same as the plugin), the **`{Kind} Audit summary: total = … benign = … attention = …`** line, **`{Kind} that requires attention`**, then the resource table. For **pods** and other API kinds, that table matches `kubectl get` (including **RESTARTS** for pods). For **containers**, the table is plugin-defined (see [Output formats](#output-formats)). On a **terminal (TTY)**, there is no extra blank line between the summary line and the second rule; when stdout is **piped or redirected**, the plugin inserts one blank line after the summary line before the second rule.
-
-- **total** — resources in scope (full list before the audit filter).
-- **benign** — resources that pass the audit’s “OK” bar for that kind (for **pods**: `Running`, every regular container `Ready`, and no regular or init container has `RestartCount` of 5 or more; for **containers**: each init/app row that is not flagged by the same style of checks at container granularity).
-- **attention** — rows in the filtered result (same as the table).
-
-If the table is empty, **stderr** explains either that nothing of that kind exists in scope or that nothing requires attention; **stdout** still prints the summary block.
-
-Names and namespaces below are **illustrative and masked**; spacing is aligned like typical `kubectl get` output.
-
 **Pods — single namespace**
 
 ```bash
@@ -278,6 +268,7 @@ cd kubectl-audit
 make bin          # writes bin/audit
 make test         # tests + coverage profile
 make fmt && make vet
+make install    # installs the plugin to ~/.krew/kubectl-audit for ad-hoc/cluster testing
 ```
 
 Run without installing (same flags as under `kubectl audit`):
