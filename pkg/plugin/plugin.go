@@ -7,6 +7,7 @@ import (
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"k8s.io/client-go/kubernetes"
 )
@@ -19,6 +20,8 @@ const podRestartAttentionThreshold int32 = 5
 type AuditOptions struct {
 	AllNamespaces bool
 	LabelSelector string
+	// PodName, if set, restricts listing to pods with this exact metadata.name (used by audit containers).
+	PodName string
 }
 
 func namespaceForQuery(configFlags *genericclioptions.ConfigFlags, allNamespaces bool) (string, error) {
@@ -34,7 +37,11 @@ func namespaceForQuery(configFlags *genericclioptions.ConfigFlags, allNamespaces
 }
 
 func auditMetav1ListOptions(o AuditOptions) metav1.ListOptions {
-	return metav1.ListOptions{LabelSelector: o.LabelSelector}
+	lo := metav1.ListOptions{LabelSelector: o.LabelSelector}
+	if o.PodName != "" {
+		lo.FieldSelector = fields.OneTermEqualSelector("metadata.name", o.PodName).String()
+	}
+	return lo
 }
 
 // AuditPods returns pods that need attention as a PodList. totalInScope is len(Items) from the
