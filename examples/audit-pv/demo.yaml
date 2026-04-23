@@ -1,0 +1,19 @@
+# Demo for `kubectl audit pv` (unbound hostPath volume — stays Available / not Bound).
+# Requires a cluster that allows hostPath (e.g. kind, minikube). Skip on clouds that deny it.
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: kubectl-audit-pv-demo-pv
+  labels:
+    demo: kubectl-audit-pv
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Delete
+  storageClassName: ""
+  hostPath:
+    path: /tmp/kubectl-audit-pv-demo
+    type: DirectoryOrCreate

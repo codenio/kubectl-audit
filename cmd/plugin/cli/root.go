@@ -37,6 +37,7 @@ and a one-line summary before the table.
   kubectl audit containers --pod my-pod-abc
   kubectl audit pods
   kubectl audit pods -o wide
+  kubectl audit service
   kubectl audit nodes -o json
   kubectl audit pvc -o yaml
   kubectl audit jobs -o custom-columns=NAME:.metadata.name
@@ -78,6 +79,7 @@ var auditResourceCommands = []auditResourceCmdDef{
 	{resource: "pvc", use: "pvc", short: "Audit persistent volume claims", aliases: []string{"pvcs", "persistentvolumeclaim", "persistentvolumeclaims"}},
 	{resource: "jobs", use: "jobs", short: "Audit jobs", aliases: []string{"job"}},
 	{resource: "cronjobs", use: "cronjobs", short: "Audit cron jobs", aliases: []string{"cronjob", "cj"}},
+	{resource: "services", use: "service", short: "Audit services whose selectors match no pods", aliases: []string{"services", "svc"}},
 }
 
 func newAuditResourceCmd(def auditResourceCmdDef) *cobra.Command {
@@ -143,6 +145,8 @@ func runAudit(res string, cmd *cobra.Command) error {
 		obj, totalInScope, benignInScope, err = plugin.AuditJobs(KubernetesConfigFlags, opts)
 	case "cronjobs":
 		obj, totalInScope, benignInScope, err = plugin.AuditCronJobs(KubernetesConfigFlags, opts)
+	case "services":
+		obj, totalInScope, benignInScope, err = plugin.AuditServices(KubernetesConfigFlags, opts)
 	default:
 		return fmt.Errorf("unknown resource %q", res)
 	}
@@ -206,6 +210,7 @@ var auditGroupKinds = map[string]schema.GroupKind{
 	"pvc":        {Group: "", Kind: "PersistentVolumeClaim"},
 	"jobs":       {Group: "batch", Kind: "Job"},
 	"cronjobs":   {Group: "batch", Kind: "CronJob"},
+	"services":   {Group: "", Kind: "Service"},
 }
 
 func auditSummaryResourceTitle(resource string) string {
@@ -236,7 +241,7 @@ func withNamespaceColumn(resource string, allNS bool) bool {
 		return false
 	}
 	switch resource {
-	case "containers", "pods", "pvc", "jobs", "cronjobs":
+	case "containers", "pods", "pvc", "jobs", "cronjobs", "services":
 		return true
 	default:
 		return false
@@ -259,7 +264,7 @@ func auditObjectLen(obj runtime.Object) int {
 // nothing exists in scope; when positive, resources exist but none match the audit.
 func writeAuditEmptyMessage(w io.Writer, resource string, allNS bool, cf *genericclioptions.ConfigFlags, inScopeCount int) {
 	phrase := auditResourcePhrase(resource)
-	namespaced := resource == "containers" || resource == "pods" || resource == "pvc" || resource == "jobs" || resource == "cronjobs"
+	namespaced := resource == "containers" || resource == "pods" || resource == "pvc" || resource == "jobs" || resource == "cronjobs" || resource == "services"
 
 	if inScopeCount > 0 {
 		if namespaced && !allNS {
@@ -303,6 +308,8 @@ func auditResourcePhrase(resource string) string {
 		return "jobs"
 	case "cronjobs":
 		return "cron jobs"
+	case "services":
+		return "services"
 	default:
 		return "resources"
 	}

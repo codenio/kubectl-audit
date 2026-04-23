@@ -1,0 +1,28 @@
+# Demo for `kubectl audit jobs` (failing Job).
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: kubectl-audit-job-demo
+  labels:
+    demo: kubectl-audit-job
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: kubectl-audit-demo-failjob
+  namespace: kubectl-audit-job-demo
+  labels:
+    demo: kubectl-audit-job
+spec:
+  backoffLimit: 0
+  template:
+    metadata:
+      labels:
+        demo: kubectl-audit-job
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: fail
+          image: busybox:1.36
+          command: ["sh", "-c", "exit 1"]
