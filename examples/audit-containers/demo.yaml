@@ -1,0 +1,57 @@
+# Demo for `kubectl audit containers` — per-container rows (init + app) derived from Pods.
+# Includes a failing init container (attention on init row) and a healthy app-only Pod.
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: kubectl-audit-containers-demo
+  labels:
+    demo: kubectl-audit-containers
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kubectl-audit-demo-healthy
+  namespace: kubectl-audit-containers-demo
+  labels:
+    demo: kubectl-audit-containers
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kubectl-audit-ctr-healthy
+  template:
+    metadata:
+      labels:
+        app: kubectl-audit-ctr-healthy
+        demo: kubectl-audit-containers
+    spec:
+      containers:
+        - name: pause
+          image: registry.k8s.io/pause:3.9
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kubectl-audit-demo-bad-init
+  namespace: kubectl-audit-containers-demo
+  labels:
+    demo: kubectl-audit-containers
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kubectl-audit-bad-init
+  template:
+    metadata:
+      labels:
+        app: kubectl-audit-bad-init
+        demo: kubectl-audit-containers
+    spec:
+      initContainers:
+        - name: fail-init
+          image: busybox:1.36
+          command: ["sh", "-c", "exit 1"]
+      containers:
+        - name: app
+          image: registry.k8s.io/pause:3.9

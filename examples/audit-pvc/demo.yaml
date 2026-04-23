@@ -1,0 +1,23 @@
+# Demo for `kubectl audit pvc` (Pending claim — non-existent StorageClass).
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: kubectl-audit-pvc-demo
+  labels:
+    demo: kubectl-audit-pvc
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: kubectl-audit-demo-pvc-pending
+  namespace: kubectl-audit-pvc-demo
+  labels:
+    demo: kubectl-audit-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 500Mi
+  storageClassName: kubectl-audit-nonexistent-sc

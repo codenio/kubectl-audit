@@ -1,0 +1,53 @@
+# Demo for `kubectl audit pods` (and `kubectl audit containers` — same workloads).
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: kubectl-audit-pods-demo
+  labels:
+    demo: kubectl-audit-pods
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kubectl-audit-demo-healthy
+  namespace: kubectl-audit-pods-demo
+  labels:
+    demo: kubectl-audit-pods
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kubectl-audit-healthy
+  template:
+    metadata:
+      labels:
+        app: kubectl-audit-healthy
+        demo: kubectl-audit-pods
+    spec:
+      containers:
+        - name: pause
+          image: registry.k8s.io/pause:3.9
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kubectl-audit-demo-badpod
+  namespace: kubectl-audit-pods-demo
+  labels:
+    demo: kubectl-audit-pods
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kubectl-audit-badpod
+  template:
+    metadata:
+      labels:
+        app: kubectl-audit-badpod
+        demo: kubectl-audit-pods
+    spec:
+      containers:
+        - name: app
+          image: invalid.registry.kubectl-audit.example/no-such-image:0
+          imagePullPolicy: Always

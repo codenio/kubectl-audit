@@ -1,0 +1,83 @@
+# Demo for `kubectl audit service` (see README).
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: kubectl-audit-service-demo
+  labels:
+    demo: kubectl-audit-service
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: orphan-svc
+  namespace: kubectl-audit-service-demo
+  labels:
+    demo: kubectl-audit-service
+spec:
+  selector:
+    app: this-has-no-pods
+  ports:
+    - port: 80
+      targetPort: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+  namespace: kubectl-audit-service-demo
+  labels:
+    demo: kubectl-audit-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: has-pods
+  template:
+    metadata:
+      labels:
+        app: has-pods
+        demo: kubectl-audit-service
+    spec:
+      containers:
+        - name: pause
+          image: registry.k8s.io/pause:3.9
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: healthy-svc
+  namespace: kubectl-audit-service-demo
+  labels:
+    demo: kubectl-audit-service
+spec:
+  selector:
+    app: has-pods
+  ports:
+    - port: 80
+      targetPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: external-only
+  namespace: kubectl-audit-service-demo
+  labels:
+    demo: kubectl-audit-service
+spec:
+  type: ExternalName
+  externalName: example.com
+  ports:
+    - port: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: no-selector
+  namespace: kubectl-audit-service-demo
+  labels:
+    demo: kubectl-audit-service
+spec:
+  ports:
+    - port: 80
+      targetPort: 8080
