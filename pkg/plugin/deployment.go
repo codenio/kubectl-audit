@@ -9,9 +9,9 @@ import (
 	"k8s.io/client-go/kubernetes"
 )
 
-// AuditDeployments returns Deployments with spec.replicas set to 0 (scaled to zero).
-// totalInScope is len(Items) from the unfiltered list; benignInScope counts deployments with
-// replicas unset or non-zero.
+// AuditDeployments returns Deployments that need attention: spec.replicas explicitly 0
+// (scaled to zero), or desired replicas > 0 with status.readyReplicas below that desired count.
+// totalInScope is len(Items) from the unfiltered list; benignInScope counts deployments that pass.
 func AuditDeployments(configFlags *genericclioptions.ConfigFlags, o AuditOptions) (*appsv1.DeploymentList, int, int, error) {
 	config, err := configFlags.ToRESTConfig()
 	if err != nil {
@@ -38,7 +38,7 @@ func AuditDeployments(configFlags *genericclioptions.ConfigFlags, o AuditOptions
 	filtered := make([]appsv1.Deployment, 0)
 	for i := range list.Items {
 		d := list.Items[i]
-		if deploymentScaledToZero(d) {
+		if deploymentNeedsAttention(d) {
 			filtered = append(filtered, d)
 			continue
 		}
@@ -47,7 +47,29 @@ func AuditDeployments(configFlags *genericclioptions.ConfigFlags, o AuditOptions
 	return &appsv1.DeploymentList{Items: filtered}, totalInScope, benignInScope, nil
 }
 
+func deploymentNeedsAttention(d appsv1.Deployment) bool {
+	return deploymentScaledToZero(d) || deploymentReadyBelowDesired(d)
+}
+
 func deploymentScaledToZero(d appsv1.Deployment) bool {
 	r := d.Spec.Replicas
 	return r != nil && *r == 0
+}
+
+// deploymentDesiredReplicas returns spec.replicas when set; otherwise 1 (Kubernetes default for Deployment).
+func deploymentDesiredReplicas(d appsv1.Deployment) int32 {
+	if d.Spec.Replicas != nil {
+		return *d.Spec.Replicas
+	}
+	return 1
+}
+
+// deploymentReadyBelowDesired is true when the Deployment wants pods running but fewer than
+// that many are Ready (status.readyReplicas), excluding the scaled-to-zero case.
+func deploymentReadyBelowDesired(d appsv1.Deployment) bool {
+	desired := deploymentDesiredReplicas(d)
+	if desired == 0 {
+		return false
+	}
+	return d.Status.ReadyReplicas < desired
 }

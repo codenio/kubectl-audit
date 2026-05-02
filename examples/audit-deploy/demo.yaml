@@ -1,4 +1,4 @@
-# Demo for `kubectl audit deploy` — one Deployment scaled to zero, one running.
+# Demo for `kubectl audit deploy` — idle (replicas 0), running (healthy), and under-ready (bad image).
 ---
 apiVersion: v1
 kind: Namespace
@@ -50,3 +50,26 @@ spec:
       containers:
         - name: pause
           image: docker.io/schoolofdevops/vote:v1
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kubectl-audit-demo-underready
+  namespace: kubectl-audit-deploy-demo
+  labels:
+    demo: kubectl-audit-deploy
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: kubectl-audit-underready
+  template:
+    metadata:
+      labels:
+        app: kubectl-audit-underready
+        demo: kubectl-audit-deploy
+    spec:
+      containers:
+        - name: app
+          image: invalid.registry.kubectl-audit.example/no-such-image:0
+          imagePullPolicy: Always
