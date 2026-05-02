@@ -1,8 +1,8 @@
 # kubectl-audit
 
-**Kubernetes `kubectl` plugin for cluster health: find unhealthy pods, container issues, nodes, storage, batch workloads, Services with no backing Pods, and Deployments scaled to zero.**
+**Kubernetes `kubectl` plugin for cluster health: find unhealthy pods, container issues, nodes, storage, batch workloads, Services with no backing Pods, and Deployments scaled to zero or under desired ready replicas.**
 
-[`kubectl-audit`](https://github.com/codenio/kubectl-audit) is a [`kubectl` plugin](https://kubernetes.io/docs/tasks/extend-kubectl/kubectl-plugins/) ([Krew](#install)) that surfaces resources failing common checks—**pods** that are not fully healthy (including high **restart counts** and bad phases such as **CrashLoopBackOff** or **ImagePullBackOff**), **containers** as individual rows (init and app, derived from pods), **nodes** that are **NotReady** or **cordoned** (**SchedulingDisabled**), **PersistentVolumes** (PV) and **PersistentVolumeClaims** (PVC) not **Bound**, **failed Jobs**, **suspended CronJobs**, **Services** whose **pod selector matches no Pods** in the same namespace (skipping **ExternalName** and empty selectors), and **Deployments** with **`spec.replicas` set to 0**. For most kinds, output matches [`kubectl get`](https://kubernetes.io/docs/reference/kubectl/generated/kubectl_get/) printers (default table, `-o wide`, JSON, YAML, custom columns, Go templates). The **containers** subcommand uses a dedicated table and supports `-o json`, `-o yaml`, `-o name`, default table, and `-o wide` (see [Output formats](#output-formats)).
+[`kubectl-audit`](https://github.com/codenio/kubectl-audit) is a [`kubectl` plugin](https://kubernetes.io/docs/tasks/extend-kubectl/kubectl-plugins/) ([Krew](#install)) that surfaces resources failing common checks—**pods** that are not fully healthy (including high **restart counts** and bad phases such as **CrashLoopBackOff** or **ImagePullBackOff**), **containers** as individual rows (init and app, derived from pods), **nodes** that are **NotReady** or **cordoned** (**SchedulingDisabled**), **PersistentVolumes** (PV) and **PersistentVolumeClaims** (PVC) not **Bound**, **failed Jobs**, **suspended CronJobs**, **Services** whose **pod selector matches no Pods** in the same namespace (skipping **ExternalName** and empty selectors), and **Deployments** with **`spec.replicas` set to 0** or **`status.readyReplicas` below desired** (desired is **`spec.replicas`**, or **1** when replicas is unset, matching the API default). For most kinds, output matches [`kubectl get`](https://kubernetes.io/docs/reference/kubectl/generated/kubectl_get/) printers (default table, `-o wide`, JSON, YAML, custom columns, Go templates). The **containers** subcommand uses a dedicated table and supports `-o json`, `-o yaml`, `-o name`, default table, and `-o wide` (see [Output formats](#output-formats)).
 
 Use it for **Kubernetes troubleshooting**, **SRE / platform** triage, and **pre-deploy smoke checks** without leaving the CLI.
 
@@ -30,7 +30,7 @@ Use it for **Kubernetes troubleshooting**, **SRE / platform** triage, and **pre-
 | **Storage (PV / PVC)** | Volumes and claims stuck outside **Bound**. |
 | **Jobs / CronJobs** | Failed jobs and cron jobs that are **suspended**. |
 | **Services** | Services with a **non-empty** pod **selector** and **no** matching **Pods** in that namespace (**ExternalName** and empty selectors are skipped). |
-| **Deployments** | Deployments whose **`spec.replicas`** is explicitly **0** (scaled to zero; `nil` replicas is treated as not in scope for this check). |
+| **Deployments** | **`spec.replicas`** explicitly **0** (scaled to zero), or desired **> 0** with **`status.readyReplicas` &lt; desired** (desired **1** when **`spec.replicas`** is `nil`). |
 
 ## Install
 
@@ -96,7 +96,7 @@ Standard `kubectl` config applies: current context, `KUBECONFIG`, `-n` / `--name
 | `jobs`       | `job`                                                     | Failed jobs (including backoff / deadline failures).                                                                                                                                                                                                                                  |
 | `cronjobs`   | `cronjob`, `cj`                                           | Suspended cron jobs.                                                                                                                                                                                                                                                                  |
 | `service`    | `services`, `svc`                                         | Services whose **selector** matches **no Pods** in the namespace (**ExternalName** and empty **selector** are out of scope for this check). The audit **`-l` / `--selector`** filters **Services** only; Pod matching uses all Pods in each namespace.                               |
-| `deploy`     | `deployment`, `deployments`                               | Deployments with **`spec.replicas: 0`** (scaled to zero).                                                                                                                                                                                                                            |
+| `deploy`     | `deployment`, `deployments`                               | Deployments with **`spec.replicas: 0`** (scaled to zero), or **`status.readyReplicas` &lt; desired** when desired **&gt; 0** (desired from **`spec.replicas`**, default **1** if unset).                                                                                                                                                                                                                            |
 
 
 **Common flags**
@@ -158,7 +158,7 @@ kubectl audit service
 kubectl audit svc -A
 kubectl audit service -n my-namespace -l app=myapp
 
-# Deployments: spec.replicas 0 (scaled to zero)
+# Deployments: scaled to zero or ready count below desired
 kubectl audit deploy
 kubectl audit deploy -A
 

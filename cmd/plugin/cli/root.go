@@ -81,7 +81,7 @@ var auditResourceCommands = []auditResourceCmdDef{
 	{resource: "jobs", use: "jobs", short: "Audit jobs", aliases: []string{"job"}},
 	{resource: "cronjobs", use: "cronjobs", short: "Audit cron jobs", aliases: []string{"cronjob", "cj"}},
 	{resource: "services", use: "service", short: "Audit services whose selectors match no pods", aliases: []string{"services", "svc"}},
-	{resource: "deployments", use: "deploy", short: "Audit deployments scaled to zero replicas", aliases: []string{"deployment", "deployments"}},
+	{resource: "deployments", use: "deploy", short: "Audit deployments scaled to zero or with ready replicas below desired", aliases: []string{"deployment", "deployments"}},
 }
 
 func newAuditResourceCmd(def auditResourceCmdDef) *cobra.Command {
