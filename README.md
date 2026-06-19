@@ -1,8 +1,8 @@
 # kubectl-audit
 
-**Kubernetes `kubectl` plugin for cluster health: find unhealthy pods, container issues, nodes, storage, batch workloads, Services with no backing Pods, and Deployments scaled to zero or under desired ready replicas.**
+**Kubernetes `kubectl` plugin for cluster health: find unhealthy pods, container issues, nodes, storage, batch workloads, Services with no backing Pods, Deployments scaled to zero or under desired ready replicas, and Warning events.**
 
-[`kubectl-audit`](https://github.com/codenio/kubectl-audit) is a [`kubectl` plugin](https://kubernetes.io/docs/tasks/extend-kubectl/kubectl-plugins/) ([Krew](#install)) that surfaces resources failing common checks—**pods** that are not fully healthy (including high **restart counts** and bad phases such as **CrashLoopBackOff** or **ImagePullBackOff**), **containers** as individual rows (init and app, derived from pods), **nodes** that are **NotReady** or **cordoned** (**SchedulingDisabled**), **PersistentVolumes** (PV) and **PersistentVolumeClaims** (PVC) not **Bound**, **failed Jobs**, **suspended CronJobs**, **Services** whose **pod selector matches no Pods** in the same namespace (skipping **ExternalName** and empty selectors), and **Deployments** with **`spec.replicas` set to 0** or **`status.readyReplicas` below desired** (desired is **`spec.replicas`**, or **1** when replicas is unset, matching the API default). For most kinds, output matches [`kubectl get`](https://kubernetes.io/docs/reference/kubectl/generated/kubectl_get/) printers (default table, `-o wide`, JSON, YAML, custom columns, Go templates). The **containers** subcommand uses a dedicated table and supports `-o json`, `-o yaml`, `-o name`, default table, and `-o wide` (see [Output formats](#output-formats)).
+[`kubectl-audit`](https://github.com/codenio/kubectl-audit) is a [`kubectl` plugin](https://kubernetes.io/docs/tasks/extend-kubectl/kubectl-plugins/) ([Krew](#install)) that surfaces resources failing common checks—**pods** that are not fully healthy (including high **restart counts** and bad phases such as **CrashLoopBackOff** or **ImagePullBackOff**), **containers** as individual rows (init and app, derived from pods), **nodes** that are **NotReady** or **cordoned** (**SchedulingDisabled**), **PersistentVolumes** (PV) and **PersistentVolumeClaims** (PVC) not **Bound**, **failed Jobs**, **suspended CronJobs**, **Services** whose **pod selector matches no Pods** in the same namespace (skipping **ExternalName** and empty selectors), and **Deployments** with **`spec.replicas` set to 0** or **`status.readyReplicas` below desired** (desired is **`spec.replicas`**, or **1** when replicas is unset, matching the API default), and **Warning events** (`type=Warning`; Normal events are treated as benign). For most kinds, output matches [`kubectl get`](https://kubernetes.io/docs/reference/kubectl/generated/kubectl_get/) printers (default table, `-o wide`, JSON, YAML, custom columns, Go templates). The **containers** subcommand uses a dedicated table and supports `-o json`, `-o yaml`, `-o name`, default table, and `-o wide` (see [Output formats](#output-formats)).
 
 Use it for **Kubernetes troubleshooting**, **SRE / platform** triage, and **pre-deploy smoke checks** without leaving the CLI.
 
@@ -31,6 +31,7 @@ Use it for **Kubernetes troubleshooting**, **SRE / platform** triage, and **pre-
 | **Jobs / CronJobs** | Failed jobs and cron jobs that are **suspended**. |
 | **Services** | Services with a **non-empty** pod **selector** and **no** matching **Pods** in that namespace (**ExternalName** and empty selectors are skipped). |
 | **Deployments** | **`spec.replicas`** explicitly **0** (scaled to zero), or desired **> 0** with **`status.readyReplicas` &lt; desired** (desired **1** when **`spec.replicas`** is `nil`). |
+| **Events** | **Warning** events (`type=Warning`); **Normal** events are benign. |
 
 ## Install
 
@@ -97,11 +98,12 @@ Standard `kubectl` config applies: current context, `KUBECONFIG`, `-n` / `--name
 | `cronjobs`   | `cronjob`, `cj`                                           | Suspended cron jobs.                                                                                                                                                                                                                                                                  |
 | `service`    | `services`, `svc`                                         | Services whose **selector** matches **no Pods** in the namespace (**ExternalName** and empty **selector** are out of scope for this check). The audit **`-l` / `--selector`** filters **Services** only; Pod matching uses all Pods in each namespace.                               |
 | `deploy`     | `deployment`, `deployments`                               | Deployments with **`spec.replicas: 0`** (scaled to zero), or **`status.readyReplicas` &lt; desired** when desired **&gt; 0** (desired from **`spec.replicas`**, default **1** if unset).                                                                                                                                                                                                                            |
+| `events`     | `event`, `ev`                                             | Events with **`type=Warning`** (for example image pull failures, backoff limits). **Normal** events are out of scope.                                                                                                                                                                                                                               |
 
 
 **Common flags**
 
-- **All namespaces:** `-A` or `--all-namespaces` for namespaced targets (`containers`, `pods`, `pvc`, `jobs`, `cronjobs`, `service`, `deploy`).
+- **All namespaces:** `-A` or `--all-namespaces` for namespaced targets (`containers`, `pods`, `pvc`, `jobs`, `cronjobs`, `service`, `deploy`, `events`).
 - **Labels:** `-l` / `--selector` (same semantics as `kubectl get`; applies to the underlying pod list for `containers`, to the **Service** list for `kubectl audit service`, and to the **Deployment** list for `kubectl audit deploy`).
 
 There are no `--pending` / `--failed` style switches: one `kubectl audit pods` run applies all pod rules above; `kubectl audit containers` applies per-container rules.
@@ -110,7 +112,7 @@ Further notes live in [doc/USAGE.md](doc/USAGE.md).
 
 ## Output formats
 
-For **pods**, **nodes**, **pv**, **pvc**, **jobs**, **cronjobs**, **service**, and **deploy**, [`kubectl get`](https://kubernetes.io/docs/reference/kubectl/generated/kubectl_get/)-style `-o` flags work as usual, for example:
+For **pods**, **nodes**, **pv**, **pvc**, **jobs**, **cronjobs**, **service**, **deploy**, and **events**, [`kubectl get`](https://kubernetes.io/docs/reference/kubectl/generated/kubectl_get/)-style `-o` flags work as usual, for example:
 
 ```bash
 kubectl audit pods -o wide
@@ -118,6 +120,7 @@ kubectl audit nodes -o json
 kubectl audit pvc -o yaml
 kubectl audit jobs -o custom-columns=NAME:.metadata.name
 kubectl audit service -o json
+kubectl audit events -o wide
 ```
 
 For **`containers`**, printing is custom: **default** and **`-o wide`** use a fixed column layout. Default columns are **NAMESPACE** (with `-A`), **POD**, **NAME**, **READY**, **STATUS**, **RESTARTS**, **AGE**, **TYPE** (`container` vs `init-container`). **`-o wide`** adds **PORTS**, **IMAGE**, and **PULLPOLICY**. Machine output: **`-o json`**, **`-o yaml`**, **`-o name`** only (other `-o` values are rejected with a clear error).
@@ -162,6 +165,10 @@ kubectl audit service -n my-namespace -l app=myapp
 kubectl audit deploy
 kubectl audit deploy -A
 
+# Events: Warning type only
+kubectl audit events
+kubectl audit events -A
+
 # Portable demo YAML per audit: see examples/README.md and examples/audit-*/
 
 ```
@@ -178,6 +185,7 @@ Each subfolder under [`examples/`](examples/README.md) has a **`demo.yaml`** plu
 | [`examples/audit-cronjob/`](examples/audit-cronjob/README.md) | `cronjobs` |
 | [`examples/audit-svc/`](examples/audit-svc/README.md) | `service` |
 | [`examples/audit-deploy/`](examples/audit-deploy/README.md) | `deploy` |
+| [`examples/audit-events/`](examples/audit-events/README.md) | `events` |
 | [`examples/audit-pvc/`](examples/audit-pvc/README.md) | `pvc` |
 | [`examples/audit-pv/`](examples/audit-pv/README.md) | `pv` |
 

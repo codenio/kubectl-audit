@@ -29,6 +29,7 @@ var auditGVR = map[string]schema.GroupVersionResource{
 	"cronjobs":    {Group: "batch", Version: "v1", Resource: "cronjobs"},
 	"services":    {Group: "", Version: "v1", Resource: "services"},
 	"deployments": {Group: "apps", Version: "v1", Resource: "deployments"},
+	"events":      {Group: "", Version: "v1", Resource: "events"},
 }
 
 func tableAcceptHeader() string {
@@ -107,7 +108,7 @@ func AsServerTableIfNeeded(cf *genericclioptions.ConfigFlags, resource string, o
 
 func auditNamespacedResource(resource string) bool {
 	switch resource {
-	case "pods", "pvc", "jobs", "cronjobs", "services", "deployments":
+	case "pods", "pvc", "jobs", "cronjobs", "services", "deployments", "events":
 		return true
 	default:
 		return false
@@ -218,6 +219,13 @@ func objectKeysForFilter(obj runtime.Object, resource string) (keys map[string]s
 		}
 		for _, d := range list.Items {
 			keys[d.Namespace+"/"+d.Name] = struct{}{}
+		}
+	case *corev1.EventList:
+		if len(list.Items) == 0 {
+			return keys, namespaced, true
+		}
+		for _, e := range list.Items {
+			keys[e.Namespace+"/"+e.Name] = struct{}{}
 		}
 	default:
 		return keys, namespaced, true

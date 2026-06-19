@@ -43,9 +43,9 @@ kubectl audit containers -n kubectl-audit-containers-demo -l demo=kubectl-audit-
 kubectl delete -f examples/audit-containers/demo.yaml
 ```
 
-See `examples/README.md` for **jobs**, **cronjobs**, **PVC**, **PV**, and **service** folders.
+See `examples/README.md` for **jobs**, **cronjobs**, **events**, **PVC**, **PV**, and **service** folders.
 
 ## How it works
 The plugin queries Kubernetes resources using client-go and prints kubectl-style
 tables for resources that require attention (for example pods that are not running/ready or have high container restart counts,
-NotReady nodes, non-Bound PVC/PV, failed jobs, suspended cronjobs, and Services with a pod selector but no matching Pods). See the README for pod criteria and the restart threshold.
+NotReady nodes, non-Bound PVC/PV, failed jobs, suspended cronjobs, Services with a pod selector but no matching Pods, and Warning events). See the README for pod criteria and the restart threshold.

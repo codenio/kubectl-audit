@@ -125,6 +125,15 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: deploy/krew/audit-release.yaml
+      - name: Sync codenio krew index
+        env:
+          GH_TOKEN: ${{ secrets.CODENIO_KREW_INDEX_TOKEN }}
+        run: |
+          set -euo pipefail
+          gh workflow run sync-kubectl-audit.yaml \
+            --repo codenio/codenio-krew-index \
+            --ref main
+          echo "Triggered https://github.com/codenio/codenio-krew-index/actions/workflows/sync-kubectl-audit.yaml"
       # First-time krew-index listing must be a manual PR. After `audit` is merged,
       # uncomment the step below so future tags open krew-index update PRs automatically.
       # - name: Update new version in krew-index
