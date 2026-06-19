@@ -1,0 +1,53 @@
+# Demo for `kubectl audit events` — a failing workload generates Warning events.
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: kubectl-audit-events-demo
+  labels:
+    demo: kubectl-audit-events
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kubectl-audit-demo-healthy
+  namespace: kubectl-audit-events-demo
+  labels:
+    demo: kubectl-audit-events
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kubectl-audit-events-healthy
+  template:
+    metadata:
+      labels:
+        app: kubectl-audit-events-healthy
+        demo: kubectl-audit-events
+    spec:
+      containers:
+        - name: pause
+          image: registry.k8s.io/pause:3.9
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kubectl-audit-demo-badpod
+  namespace: kubectl-audit-events-demo
+  labels:
+    demo: kubectl-audit-events
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kubectl-audit-events-badpod
+  template:
+    metadata:
+      labels:
+        app: kubectl-audit-events-badpod
+        demo: kubectl-audit-events
+    spec:
+      containers:
+        - name: app
+          image: invalid.registry.kubectl-audit.example/no-such-image:0
+          imagePullPolicy: Always

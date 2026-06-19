@@ -125,9 +125,3 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: deploy/krew/audit-release.yaml
-      # First-time krew-index listing must be a manual PR. After `audit` is merged,
-      # uncomment the step below so future tags open krew-index update PRs automatically.
-      # - name: Update new version in krew-index
-      #   uses: rajatjindal/krew-release-bot@v0.0.46
-      #   with:
-      #     krew_template_file: deploy/krew/plugin.yaml

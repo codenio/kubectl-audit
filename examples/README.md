@@ -10,6 +10,7 @@ Each folder is self-contained: apply **`demo.yaml`**, run the matching **`kubect
 | [audit-cronjob](audit-cronjob/README.md) | `kubectl audit cronjobs` |
 | [audit-svc](audit-svc/README.md) | `kubectl audit service` |
 | [audit-deploy](audit-deploy/README.md) | `kubectl audit deploy` |
+| [audit-events](audit-events/README.md) | `kubectl audit events` |
 | [audit-pvc](audit-pvc/README.md) | `kubectl audit pvc` |
 | [audit-pv](audit-pv/README.md) | `kubectl audit pv` |
 
