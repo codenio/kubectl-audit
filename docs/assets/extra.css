@@ -1,0 +1,196 @@
+/* ─── Color tokens (Kubernetes official palette) ─── */
+:root {
+  --k8s-blue:        #326ce5;
+  --k8s-dark-grey:   #303030;
+  --k8s-mid-grey:    #4c4c4c;
+  --k8s-light-grey:  #f9f9f9;
+
+  /* Material accent — K8s blue for links / highlights only */
+  --md-primary-fg-color:        #326ce5;
+  --md-primary-fg-color--light: #5b8ff5;
+  --md-primary-fg-color--dark:  #1a4db3;
+  --md-accent-fg-color:         #326ce5;
+}
+
+/* ─── Light mode navbar — white, dark text (matches kubernetes.io) ─── */
+[data-md-color-scheme="default"] .md-header {
+  background-color: #ffffff;
+  color: #303030;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
+}
+
+[data-md-color-scheme="default"] .md-header__title,
+[data-md-color-scheme="default"] .md-header__topic,
+[data-md-color-scheme="default"] .md-header-nav__button,
+[data-md-color-scheme="default"] .md-ellipsis {
+  color: #303030;
+}
+
+[data-md-color-scheme="default"] .md-tabs {
+  background-color: #f9f9f9;
+  border-bottom: 1px solid #e2e2e2;
+  color: #4c4c4c;
+}
+
+[data-md-color-scheme="default"] .md-tabs__link {
+  color: #4c4c4c;
+  opacity: 1;
+}
+
+[data-md-color-scheme="default"] .md-tabs__link:hover,
+[data-md-color-scheme="default"] .md-tabs__link--active {
+  color: #326ce5;
+}
+
+[data-md-color-scheme="default"] .md-tabs__link--active {
+  border-bottom: 2px solid #326ce5;
+}
+
+/* ─── Dark mode navbar — #303030 (matches kubernetes.io dark) ─── */
+[data-md-color-scheme="slate"] {
+  --md-primary-fg-color:   #5b8ff5;
+  --md-accent-fg-color:    #5b8ff5;
+  --md-default-bg-color:   #1b1b1b;
+  --md-default-bg-color--light: #262626;
+  --md-default-fg-color:   #e6edf3;
+}
+
+[data-md-color-scheme="slate"] .md-header {
+  background-color: #303030;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+[data-md-color-scheme="slate"] .md-tabs {
+  background-color: #262626;
+  border-bottom: 1px solid #404040;
+}
+
+[data-md-color-scheme="slate"] .md-tabs__link {
+  color: #cccccc;
+  opacity: 1;
+}
+
+[data-md-color-scheme="slate"] .md-tabs__link:hover,
+[data-md-color-scheme="slate"] .md-tabs__link--active {
+  color: #5b8ff5;
+}
+
+[data-md-color-scheme="slate"] .md-tabs__link--active {
+  border-bottom: 2px solid #5b8ff5;
+}
+
+/* Wider content area */
+.md-grid {
+  max-width: 1400px;
+}
+
+/* Hero block on home page */
+.hero {
+  padding: 2rem 0 1rem;
+  text-align: center;
+}
+
+.hero-logo {
+  width: 320px;
+  height: 320px;
+  object-fit: contain;
+  margin-bottom: 1rem;
+  border-radius: 16px;
+}
+
+.hero h1 {
+  font-size: 2.4rem;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+.hero .tagline {
+  font-size: 1.15rem;
+  color: var(--md-default-fg-color--light);
+  margin: 0.5rem 0 1.5rem;
+}
+
+/* Install pill */
+.install-pill {
+  display: inline-block;
+  background: var(--md-code-bg-color);
+  border: 1px solid var(--md-default-fg-color--lightest);
+  border-radius: 8px;
+  padding: 0.6rem 1.4rem;
+  font-family: var(--md-code-font);
+  font-size: 0.9rem;
+  margin-bottom: 2rem;
+}
+
+/* Grid cards */
+.grid-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+  margin: 1.5rem 0;
+}
+
+.grid-card {
+  background: var(--md-default-bg-color--light);
+  border: 1px solid var(--md-default-fg-color--lightest);
+  border-radius: 8px;
+  padding: 1.2rem 1.4rem;
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.grid-card:hover {
+  border-color: var(--md-primary-fg-color);
+  box-shadow: 0 2px 12px rgba(50, 108, 229, 0.12);
+  text-decoration: none;
+  color: inherit;
+}
+
+.grid-card .card-icon {
+  font-size: 1.6rem;
+  margin-bottom: 0.4rem;
+}
+
+.grid-card h3 {
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin: 0 0 0.3rem;
+}
+
+.grid-card p {
+  font-size: 0.82rem;
+  color: var(--md-default-fg-color--light);
+  margin: 0;
+}
+
+/* Audit rule tables */
+.md-typeset table:not([class]) th {
+  background: var(--md-primary-fg-color);
+  color: white;
+}
+
+/* Navbar — tighten gap between logo and site title */
+.md-header__button.md-logo {
+  margin-right: 0;
+  padding-right: 0;
+  margin-left: 12px;
+}
+
+.md-header__title {
+  margin-left: -8px;
+}
+
+.md-header__title .md-header__ellipsis {
+  padding-left: 0;
+}
+
+.md-header__topic:first-child .md-ellipsis {
+  padding-left: 0;
+  margin-left: -24px;
+}
+
+/* Code block labels */
+.md-typeset .highlight span.filename {
+  font-size: 0.78rem;
+}
