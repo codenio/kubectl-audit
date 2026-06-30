@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+
+{% block extrahead %}
+  {{ super() }}
+
+  {% set page_title = page.title ~ " | kubectl-audit" if page.title != config.site_name else "kubectl-audit — Kubernetes Cluster Health Plugin" %}
+  {% set page_desc = page.meta.description if page.meta and page.meta.description else config.site_description %}
+  {% set page_url = page.canonical_url %}
+  {% set og_image = config.site_url ~ "assets/social-preview.png" %}
+
+  <!-- Open Graph -->
+  <meta property="og:type"        content="website" />
+  <meta property="og:site_name"   content="kubectl-audit" />
+  <meta property="og:url"         content="{{ page_url }}" />
+  <meta property="og:title"       content="{{ page_title }}" />
+  <meta property="og:description" content="{{ page_desc }}" />
+  <meta property="og:image"       content="{{ og_image }}" />
+  <meta property="og:image:width"  content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:locale"      content="en_US" />
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card"        content="summary_large_image" />
+  <meta name="twitter:title"       content="{{ page_title }}" />
+  <meta name="twitter:description" content="{{ page_desc }}" />
+  <meta name="twitter:image"       content="{{ og_image }}" />
+
+  <!-- Robots -->
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+
+  <!-- JSON-LD: SoftwareApplication (home page only) -->
+  {% if page.url == "." or page.url == "" or page.url == "/" %}
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "kubectl-audit",
+    "applicationCategory": "DeveloperApplication",
+    "operatingSystem": "Linux, macOS, Windows",
+    "description": "{{ config.site_description }}",
+    "url": "{{ config.site_url }}",
+    "downloadUrl": "https://github.com/codenio/kubectl-audit/releases",
+    "softwareVersion": "latest",
+    "license": "https://github.com/codenio/kubectl-audit/blob/main/LICENSE",
+    "codeRepository": "https://github.com/codenio/kubectl-audit",
+    "author": {
+      "@type": "Organization",
+      "name": "codenio",
+      "url": "https://github.com/codenio"
+    },
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD"
+    },
+    "keywords": "kubectl, kubernetes, kubectl-plugin, krew, cluster-health, sre, devops, pod-audit, node-audit"
+  }
+  </script>
+  {% endif %}
+
+  <!-- JSON-LD: BreadcrumbList -->
+  {% if page.ancestors %}
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "kubectl-audit",
+        "item": "{{ config.site_url }}"
+      }
+      {% for nav_item in page.ancestors %}
+      ,{
+        "@type": "ListItem",
+        "position": {{ loop.index + 1 }},
+        "name": "{{ nav_item.title }}",
+        "item": "{{ config.site_url }}{{ nav_item.url }}"
+      }
+      {% endfor %}
+      ,{
+        "@type": "ListItem",
+        "position": {{ page.ancestors | length + 2 }},
+        "name": "{{ page.title }}",
+        "item": "{{ page_url }}"
+      }
+    ]
+  }
+  </script>
+  {% endif %}
+
+{% endblock %}
