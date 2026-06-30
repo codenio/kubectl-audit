@@ -111,7 +111,7 @@ jobs:
 
               For additional options:
                 $ kubectl audit --help
-                or https://github.com/codenio/kubectl-audit/blob/${TAG}/doc/USAGE.md
+                or https://codenio.github.io/kubectl-audit/
 
             description: |
               Run quick Kubernetes resource audits for common operational issues, including

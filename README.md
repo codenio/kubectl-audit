@@ -1,6 +1,19 @@
 # kubectl-audit
 
+<p align="center">
+  <img src="docs/assets/logo-home.png" alt="kubectl-audit logo" width="200"/>
+</p>
+
+[![GitHub release](https://img.shields.io/github/v/release/codenio/kubectl-audit?logo=github)](https://github.com/codenio/kubectl-audit/releases/latest)
+[![Go version](https://img.shields.io/github/go-mod/go-version/codenio/kubectl-audit?logo=go)](go.mod)
+[![License](https://img.shields.io/github/license/codenio/kubectl-audit)](LICENSE)
+[![Go Report Card](https://goreportcard.com/badge/github.com/codenio/kubectl-audit)](https://goreportcard.com/report/github.com/codenio/kubectl-audit)
+[![Docs](https://img.shields.io/badge/docs-mkdocs-blue?logo=readthedocs)](https://codenio.github.io/kubectl-audit/)
+[![Release](https://github.com/codenio/kubectl-audit/actions/workflows/release.yml/badge.svg)](https://github.com/codenio/kubectl-audit/actions/workflows/release.yml)
+
 **Kubernetes `kubectl` plugin for cluster health: find unhealthy pods, container issues, nodes, storage, batch workloads, Services with no backing Pods, Deployments scaled to zero or under desired ready replicas, and Warning events.**
+
+> **[📖 Full documentation → codenio.github.io/kubectl-audit](https://codenio.github.io/kubectl-audit/)**
 
 [`kubectl-audit`](https://github.com/codenio/kubectl-audit) is a [`kubectl` plugin](https://kubernetes.io/docs/tasks/extend-kubectl/kubectl-plugins/) ([Krew](#install)) that surfaces resources failing common checks—**pods** that are not fully healthy (including high **restart counts** and bad phases such as **CrashLoopBackOff** or **ImagePullBackOff**), **containers** as individual rows (init and app, derived from pods), **nodes** that are **NotReady** or **cordoned** (**SchedulingDisabled**), **PersistentVolumes** (PV) and **PersistentVolumeClaims** (PVC) not **Bound**, **failed Jobs**, **suspended CronJobs**, **Services** whose **pod selector matches no Pods** in the same namespace (skipping **ExternalName** and empty selectors), and **Deployments** with **`spec.replicas` set to 0** or **`status.readyReplicas` below desired** (desired is **`spec.replicas`**, or **1** when replicas is unset, matching the API default), and **Warning events** (`type=Warning`; Normal events are treated as benign). For most kinds, output matches [`kubectl get`](https://kubernetes.io/docs/reference/kubectl/generated/kubectl_get/) printers (default table, `-o wide`, JSON, YAML, custom columns, Go templates). The **containers** subcommand uses a dedicated table and supports `-o json`, `-o yaml`, `-o name`, default table, and `-o wide` (see [Output formats](#output-formats)).
 
@@ -108,7 +121,7 @@ Standard `kubectl` config applies: current context, `KUBECONFIG`, `-n` / `--name
 
 There are no `--pending` / `--failed` style switches: one `kubectl audit pods` run applies all pod rules above; `kubectl audit containers` applies per-container rules.
 
-Further notes live in [doc/USAGE.md](doc/USAGE.md).
+Further notes live in the [full documentation](https://codenio.github.io/kubectl-audit/).
 
 ## Output formats
 

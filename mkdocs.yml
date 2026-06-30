@@ -1,0 +1,117 @@
+site_name: kubectl-audit
+site_description: kubectl plugin for Kubernetes cluster health — find unhealthy pods, nodes, storage, services, deployments and warning events from the command line.
+site_url: https://codenio.github.io/kubectl-audit/
+repo_url: https://github.com/codenio/kubectl-audit
+repo_name: codenio/kubectl-audit
+edit_uri: edit/main/docs/
+copyright: Copyright &copy; 2024 codenio
+
+theme:
+  name: material
+  logo: assets/logo-nav.png
+  favicon: assets/logo-nav.png
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: white
+      accent: blue
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+  font:
+    text: Inter
+    code: JetBrains Mono
+  features:
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.sections
+    - navigation.top
+    - navigation.footer
+    - navigation.indexes
+    - navigation.instant
+    - navigation.instant.progress
+    - search.highlight
+    - search.suggest
+    - search.share
+    - content.code.copy
+    - content.code.annotate
+    - content.tabs.link
+    - announce.dismiss
+    - toc.follow
+  icon:
+    repo: fontawesome/brands/github
+    edit: material/pencil
+    view: material/eye
+
+extra_css:
+  - assets/extra.css
+
+plugins:
+  - search:
+      lang: en
+  - tags
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - tables
+  - attr_list
+  - md_in_html
+  - toc:
+      permalink: true
+      title: On this page
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/codenio/kubectl-audit
+      name: kubectl-audit on GitHub
+
+nav:
+  - Home: index.md
+  - Getting Started:
+      - getting-started/index.md
+      - Installation: getting-started/install.md
+      - Quick Start: getting-started/quickstart.md
+      - RBAC & Permissions: getting-started/rbac.md
+  - Reference:
+      - Audit Rules: reference/audit-rules.md
+      - Subcommands: reference/subcommands.md
+      - Output Formats: reference/output-formats.md
+      - Flags: reference/flags.md
+  - Examples:
+      - examples/index.md
+      - Pods: examples/pods.md
+      - Containers: examples/containers.md
+      - Nodes: examples/nodes.md
+      - Jobs & CronJobs: examples/jobs.md
+      - Services: examples/services.md
+      - Deployments: examples/deployments.md
+      - PV & PVC: examples/storage.md
+      - Events: examples/events.md
+  - Guides:
+      - CI/CD Integration: guides/cicd.md
+      - Troubleshooting: guides/troubleshooting.md
+  - Contributing: contributing.md
