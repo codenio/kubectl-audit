@@ -1,5 +1,5 @@
 ---
-title: kubectl-audit — Kubernetes Cluster Health Plugin
+title: Kubernetes Cluster Health Plugin
 description: kubectl plugin to find unhealthy pods, nodes, storage, services, deployments and warning events from the command line.
 hide:
   - navigation
@@ -7,7 +7,7 @@ hide:
 ---
 
 <div class="hero">
-  <img src="assets/logo-home.png" alt="kubectl-audit logo" class="hero-logo" />
+  <img src="assets/logo-home.png" alt="kubectl-audit Kubernetes health check plugin" class="hero-logo" />
   <h1>kubectl-audit</h1>
   <p class="tagline">Kubernetes cluster health, straight from your terminal.</p>
   <div class="install-pill">kubectl krew install codenio/audit</div>
