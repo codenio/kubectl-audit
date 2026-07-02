@@ -7,6 +7,9 @@ description: Use kubectl audit pods to find pods that are not running, not ready
 
 `kubectl audit pods` lists pods flagged by health checks — see [Audit Rules: Pods](../reference/audit-rules.md#pods) for the exact criteria.
 
+![kubectl audit pods — summary and attention table](../assets/audit-pods.gif){ .demo-gif }
+<p class="demo-gif-caption"><code>kubectl audit pods</code> on a demo namespace with healthy, failing, and completed workloads.</p>
+
 ## Demo
 
 ```bash

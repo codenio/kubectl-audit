@@ -1,4 +1,4 @@
-# Demo for `kubectl audit events` — a failing workload generates Warning events.
+# Demo for `kubectl audit events` — Warning events from image pull, crash loop, and init failure.
 ---
 apiVersion: v1
 kind: Namespace
@@ -51,3 +51,52 @@ spec:
         - name: app
           image: invalid.registry.kubectl-audit.example/no-such-image:0
           imagePullPolicy: Always
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kubectl-audit-demo-crashloop
+  namespace: kubectl-audit-events-demo
+  labels:
+    demo: kubectl-audit-events
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kubectl-audit-events-crashloop
+  template:
+    metadata:
+      labels:
+        app: kubectl-audit-events-crashloop
+        demo: kubectl-audit-events
+    spec:
+      containers:
+        - name: crash
+          image: busybox:1.36
+          command: ["sh", "-c", "exit 1"]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kubectl-audit-demo-bad-init
+  namespace: kubectl-audit-events-demo
+  labels:
+    demo: kubectl-audit-events
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kubectl-audit-events-bad-init
+  template:
+    metadata:
+      labels:
+        app: kubectl-audit-events-bad-init
+        demo: kubectl-audit-events
+    spec:
+      initContainers:
+        - name: fail-init
+          image: busybox:1.36
+          command: ["sh", "-c", "exit 1"]
+      containers:
+        - name: app
+          image: registry.k8s.io/pause:3.9

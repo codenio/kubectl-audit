@@ -17,6 +17,9 @@ hide:
 
 Use it for **incident triage**, **SRE runbooks**, **pre-deploy smoke checks**, and **CI/CD gates**.
 
+![kubectl audit pods — terminal demo](assets/audit-pods.gif){ .demo-gif }
+<p class="demo-gif-caption"><code>kubectl audit pods</code> surfaces unhealthy pods with a summary line and attention table.</p>
+
 ---
 
 ## What it checks

@@ -11,6 +11,8 @@ After [installing](install.md), run your first audit:
 kubectl audit pods
 ```
 
+![kubectl audit pods demo](../assets/audit-pods.gif){ .demo-gif }
+
 ## Choose the right subcommand
 
 | I want to… | Command |

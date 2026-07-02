@@ -12,6 +12,9 @@
 [![Release](https://github.com/codenio/kubectl-audit/actions/workflows/release.yml/badge.svg)](https://github.com/codenio/kubectl-audit/actions/workflows/release.yml)
 
 **Kubernetes `kubectl` plugin for cluster health: find unhealthy pods, container issues, nodes, storage, batch workloads, Services with no backing Pods, Deployments scaled to zero or under desired ready replicas, and Warning events.**
+<p align="center">
+  <img src="docs/assets/audit-pods.gif" alt="kubectl audit pods listing unhealthy pods with summary counts" width="900"/>
+</p>
 
 > **[📖 Full documentation → codenio.github.io/kubectl-audit](https://codenio.github.io/kubectl-audit/)**
 
@@ -192,13 +195,13 @@ Each subfolder under [`examples/`](examples/README.md) has a **`demo.yaml`** plu
 
 | Folder | `kubectl audit` target |
 | ------ | ------------------------ |
-| [`examples/audit-pods/`](examples/audit-pods/README.md) | `pods` |
-| [`examples/audit-containers/`](examples/audit-containers/README.md) | `containers` ([`demo.yaml`](examples/audit-containers/demo.yaml): failing **init**; [audit-pods](examples/audit-pods/README.md) for bad **image**) |
+| [`examples/audit-pods/`](examples/audit-pods/README.md) | `pods` (healthy, bad image, crash loop, completed Job) |
+| [`examples/audit-containers/`](examples/audit-containers/README.md) | `containers` (init failure, bad sidecar, crash loop) |
 | [`examples/audit-job/`](examples/audit-job/README.md) | `jobs` |
 | [`examples/audit-cronjob/`](examples/audit-cronjob/README.md) | `cronjobs` |
 | [`examples/audit-svc/`](examples/audit-svc/README.md) | `service` |
 | [`examples/audit-deploy/`](examples/audit-deploy/README.md) | `deploy` |
-| [`examples/audit-events/`](examples/audit-events/README.md) | `events` |
+| [`examples/audit-events/`](examples/audit-events/README.md) | `events` (image pull, BackOff, init failure warnings) |
 | [`examples/audit-pvc/`](examples/audit-pvc/README.md) | `pvc` |
 | [`examples/audit-pv/`](examples/audit-pv/README.md) | `pv` |
 
