@@ -1488,6 +1488,9 @@
 
 <h1 id="pods">Pods<a class="headerlink" href="#pods" title="Permanent link">&para;</a></h1>
 <p><code>kubectl audit pods</code> lists pods flagged by health checks — see <a href="../../reference/audit-rules/#pods">Audit Rules: Pods</a> for the exact criteria.</p>
+<p><img alt="kubectl audit pods — summary and attention table" class="demo-gif" src="../../assets/audit-pods.gif" /></p>
+<p class="demo-gif-caption"><code>kubectl audit pods</code> on a demo namespace with healthy, failing, and completed workloads.</p>
+
 <h2 id="demo">Demo<a class="headerlink" href="#demo" title="Permanent link">&para;</a></h2>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>kubectl<span class="w"> </span>apply<span class="w"> </span>-f<span class="w"> </span>examples/audit-pods/demo.yaml
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>kubectl<span class="w"> </span>audit<span class="w"> </span>pods<span class="w"> </span>-n<span class="w"> </span>kubectl-audit-pods-demo<span class="w"> </span>-l<span class="w"> </span><span class="nv">demo</span><span class="o">=</span>kubectl-audit-pods
