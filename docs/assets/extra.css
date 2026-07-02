@@ -194,3 +194,22 @@
 .md-typeset .highlight span.filename {
   font-size: 0.78rem;
 }
+
+/* Terminal demo recordings */
+.demo-gif {
+  display: block;
+  width: 100%;
+  max-width: 900px;
+  margin: 1.5rem auto;
+  border-radius: 8px;
+  border: 1px solid var(--md-default-fg-color--lightest);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+.demo-gif-caption {
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--md-default-fg-color--light);
+  margin: -0.75rem auto 1.5rem;
+  max-width: 900px;
+}
