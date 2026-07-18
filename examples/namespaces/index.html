@@ -6,33 +6,35 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="kubectl plugin to find unhealthy pods, nodes, namespaces, storage, services, deployments and warning events from the command line.">
+        <meta name="description" content="Use kubectl audit ns to find namespaces stuck in Terminating or with no workloads.">
       
       
       
-        <link rel="canonical" href="https://codenio.github.io/kubectl-audit/">
+        <link rel="canonical" href="https://codenio.github.io/kubectl-audit/examples/namespaces/">
       
       
+        <link rel="prev" href="../nodes/">
       
-        <link rel="next" href="getting-started/">
+      
+        <link rel="next" href="../jobs/">
       
       
         
       
       
-      <link rel="icon" href="assets/images/favicon.png">
+      <link rel="icon" href="../../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
     
     
       
-        <title>Kubernetes Cluster Health Plugin - kubectl-audit</title>
+        <title>Find Terminating and Empty Kubernetes Namespaces — kubectl-audit - kubectl-audit</title>
       
     
     
-      <link rel="stylesheet" href="assets/stylesheets/main.ec1eaa64.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
       
         
-        <link rel="stylesheet" href="assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
       
       
 
@@ -51,9 +53,9 @@
       
     
     
-      <link rel="stylesheet" href="assets/extra.css">
+      <link rel="stylesheet" href="../../assets/extra.css">
     
-    <script>__md_scope=new URL(".",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -69,9 +71,9 @@
   <!-- Open Graph -->
   <meta property="og:type"        content="website" />
   <meta property="og:site_name"   content="kubectl-audit" />
-  <meta property="og:url"         content="https://codenio.github.io/kubectl-audit/" />
-  <meta property="og:title"       content="Home | kubectl-audit" />
-  <meta property="og:description" content="kubectl plugin to find unhealthy pods, nodes, namespaces, storage, services, deployments and warning events from the command line." />
+  <meta property="og:url"         content="https://codenio.github.io/kubectl-audit/examples/namespaces/" />
+  <meta property="og:title"       content="Namespaces | kubectl-audit" />
+  <meta property="og:description" content="Use kubectl audit ns to find namespaces stuck in Terminating or with no workloads." />
   <meta property="og:image"       content="https://codenio.github.io/kubectl-audit/assets/social-preview.png" />
   <meta property="og:image:width"  content="1200" />
   <meta property="og:image:height" content="630" />
@@ -79,8 +81,8 @@
 
   <!-- Twitter Card -->
   <meta name="twitter:card"        content="summary_large_image" />
-  <meta name="twitter:title"       content="Home | kubectl-audit" />
-  <meta name="twitter:description" content="kubectl plugin to find unhealthy pods, nodes, namespaces, storage, services, deployments and warning events from the command line." />
+  <meta name="twitter:title"       content="Namespaces | kubectl-audit" />
+  <meta name="twitter:description" content="Use kubectl audit ns to find namespaces stuck in Terminating or with no workloads." />
   <meta name="twitter:image"       content="https://codenio.github.io/kubectl-audit/assets/social-preview.png" />
 
   <!-- Robots -->
@@ -88,35 +90,37 @@
 
   <!-- JSON-LD: SoftwareApplication (home page only) -->
   
+
+  <!-- JSON-LD: BreadcrumbList -->
+  
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
-    "@type": "SoftwareApplication",
-    "name": "kubectl-audit",
-    "applicationCategory": "DeveloperApplication",
-    "operatingSystem": "Linux, macOS, Windows",
-    "description": "kubectl plugin for Kubernetes cluster health — find unhealthy pods, nodes, namespaces, storage, services, deployments and warning events from the command line.",
-    "url": "https://codenio.github.io/kubectl-audit/",
-    "downloadUrl": "https://github.com/codenio/kubectl-audit/releases",
-    "softwareVersion": "latest",
-    "license": "https://github.com/codenio/kubectl-audit/blob/main/LICENSE",
-    "codeRepository": "https://github.com/codenio/kubectl-audit",
-    "author": {
-      "@type": "Organization",
-      "name": "codenio",
-      "url": "https://github.com/codenio"
-    },
-    "offers": {
-      "@type": "Offer",
-      "price": "0",
-      "priceCurrency": "USD"
-    },
-    "keywords": "kubectl, kubernetes, kubectl-plugin, krew, cluster-health, sre, devops, pod-audit, node-audit"
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "kubectl-audit",
+        "item": "https://codenio.github.io/kubectl-audit/"
+      }
+      
+      ,{
+        "@type": "ListItem",
+        "position": 2,
+        "name": "Examples",
+        "item": "https://codenio.github.io/kubectl-audit/"
+      }
+      
+      ,{
+        "@type": "ListItem",
+        "position": 3,
+        "name": "Namespaces",
+        "item": "https://codenio.github.io/kubectl-audit/examples/namespaces/"
+      }
+    ]
   }
   </script>
-  
-
-  <!-- JSON-LD: BreadcrumbList -->
   
 
 
@@ -139,7 +143,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#what-it-checks" class="md-skip">
+        <a href="#namespaces" class="md-skip">
           Skip to content
         </a>
       
@@ -155,9 +159,9 @@
 
 <header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="." title="kubectl-audit" class="md-header__button md-logo" aria-label="kubectl-audit" data-md-component="logo">
+    <a href="../.." title="kubectl-audit" class="md-header__button md-logo" aria-label="kubectl-audit" data-md-component="logo">
       
-  <img src="assets/logo-nav.png" alt="logo">
+  <img src="../../assets/logo-nav.png" alt="logo">
 
     </a>
     <label class="md-header__button md-icon" for="__drawer">
@@ -174,7 +178,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Kubernetes Cluster Health Plugin
+              Find Terminating and Empty Kubernetes Namespaces — kubectl-audit
             
           </span>
         </div>
@@ -284,11 +288,9 @@
   
   
   
-    
   
-  
-    <li class="md-tabs__item md-tabs__item--active">
-      <a href="." class="md-tabs__link">
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
         
   
   
@@ -309,7 +311,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="getting-started/" class="md-tabs__link">
+        <a href="../../getting-started/" class="md-tabs__link">
           
   
   
@@ -331,7 +333,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="reference/audit-rules/" class="md-tabs__link">
+        <a href="../../reference/audit-rules/" class="md-tabs__link">
           
   
   
@@ -349,11 +351,13 @@
   
   
   
+    
+  
   
     
     
-      <li class="md-tabs__item">
-        <a href="examples/" class="md-tabs__link">
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../" class="md-tabs__link">
           
   
   
@@ -375,7 +379,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="guides/cicd/" class="md-tabs__link">
+        <a href="../../guides/cicd/" class="md-tabs__link">
           
   
   
@@ -395,7 +399,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="contributing/" class="md-tabs__link">
+      <a href="../../contributing/" class="md-tabs__link">
         
   
   
@@ -425,9 +429,7 @@
           
             
               
-                
-              
-              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" hidden>
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
                 <div class="md-sidebar__scrollwrap">
                   <div class="md-sidebar__inner">
                     
@@ -438,9 +440,9 @@
 
 <nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="." title="kubectl-audit" class="md-nav__button md-logo" aria-label="kubectl-audit" data-md-component="logo">
+    <a href="../.." title="kubectl-audit" class="md-nav__button md-logo" aria-label="kubectl-audit" data-md-component="logo">
       
-  <img src="assets/logo-nav.png" alt="logo">
+  <img src="../../assets/logo-nav.png" alt="logo">
 
     </a>
     kubectl-audit
@@ -464,35 +466,10 @@
       
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Home
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="." class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
         
   
   
@@ -508,48 +485,6 @@
   
 
       </a>
-      
-        
-
-  
-
-<nav class="md-nav md-nav--secondary" aria-label="On this page">
-  
-  
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      On this page
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#what-it-checks" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        What it checks
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#navigate-the-docs" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Navigate the docs
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -590,7 +525,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="getting-started/" class="md-nav__link ">
+            <a href="../../getting-started/" class="md-nav__link ">
               
   
   
@@ -634,7 +569,7 @@
   
   
     <li class="md-nav__item">
-      <a href="getting-started/install/" class="md-nav__link">
+      <a href="../../getting-started/install/" class="md-nav__link">
         
   
   
@@ -662,7 +597,7 @@
   
   
     <li class="md-nav__item">
-      <a href="getting-started/quickstart/" class="md-nav__link">
+      <a href="../../getting-started/quickstart/" class="md-nav__link">
         
   
   
@@ -690,7 +625,7 @@
   
   
     <li class="md-nav__item">
-      <a href="getting-started/rbac/" class="md-nav__link">
+      <a href="../../getting-started/rbac/" class="md-nav__link">
         
   
   
@@ -787,7 +722,7 @@
   
   
     <li class="md-nav__item">
-      <a href="reference/audit-rules/" class="md-nav__link">
+      <a href="../../reference/audit-rules/" class="md-nav__link">
         
   
   
@@ -815,7 +750,7 @@
   
   
     <li class="md-nav__item">
-      <a href="reference/subcommands/" class="md-nav__link">
+      <a href="../../reference/subcommands/" class="md-nav__link">
         
   
   
@@ -843,7 +778,7 @@
   
   
     <li class="md-nav__item">
-      <a href="reference/output-formats/" class="md-nav__link">
+      <a href="../../reference/output-formats/" class="md-nav__link">
         
   
   
@@ -871,7 +806,7 @@
   
   
     <li class="md-nav__item">
-      <a href="reference/flags/" class="md-nav__link">
+      <a href="../../reference/flags/" class="md-nav__link">
         
   
   
@@ -903,6 +838,8 @@
       
   
   
+    
+  
   
   
     
@@ -934,20 +871,23 @@
     
     
       
+        
+        
+      
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="examples/" class="md-nav__link ">
+            <a href="../" class="md-nav__link ">
               
   
   
@@ -965,13 +905,13 @@
             </a>
             
               
-              <label class="md-nav__link " for="__nav_4" id="__nav_4_label" tabindex="0">
+              <label class="md-nav__link " for="__nav_4" id="__nav_4_label" tabindex="">
                 <span class="md-nav__icon md-icon"></span>
               </label>
             
           </div>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_4">
             <span class="md-nav__icon md-icon"></span>
             
@@ -991,7 +931,7 @@
   
   
     <li class="md-nav__item">
-      <a href="examples/pods/" class="md-nav__link">
+      <a href="../pods/" class="md-nav__link">
         
   
   
@@ -1019,7 +959,7 @@
   
   
     <li class="md-nav__item">
-      <a href="examples/containers/" class="md-nav__link">
+      <a href="../containers/" class="md-nav__link">
         
   
   
@@ -1047,7 +987,7 @@
   
   
     <li class="md-nav__item">
-      <a href="examples/nodes/" class="md-nav__link">
+      <a href="../nodes/" class="md-nav__link">
         
   
   
@@ -1072,10 +1012,37 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="examples/namespaces/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Namespaces
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -1091,6 +1058,61 @@
   
 
       </a>
+      
+        
+
+  
+
+<nav class="md-nav md-nav--secondary" aria-label="On this page">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#sample-output" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sample output
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#useful-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Useful commands
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#next-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Next steps
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -1103,7 +1125,7 @@
   
   
     <li class="md-nav__item">
-      <a href="examples/jobs/" class="md-nav__link">
+      <a href="../jobs/" class="md-nav__link">
         
   
   
@@ -1131,7 +1153,7 @@
   
   
     <li class="md-nav__item">
-      <a href="examples/services/" class="md-nav__link">
+      <a href="../services/" class="md-nav__link">
         
   
   
@@ -1159,7 +1181,7 @@
   
   
     <li class="md-nav__item">
-      <a href="examples/deployments/" class="md-nav__link">
+      <a href="../deployments/" class="md-nav__link">
         
   
   
@@ -1187,7 +1209,7 @@
   
   
     <li class="md-nav__item">
-      <a href="examples/storage/" class="md-nav__link">
+      <a href="../storage/" class="md-nav__link">
         
   
   
@@ -1215,7 +1237,7 @@
   
   
     <li class="md-nav__item">
-      <a href="examples/events/" class="md-nav__link">
+      <a href="../events/" class="md-nav__link">
         
   
   
@@ -1308,7 +1330,7 @@
   
   
     <li class="md-nav__item">
-      <a href="guides/cicd/" class="md-nav__link">
+      <a href="../../guides/cicd/" class="md-nav__link">
         
   
   
@@ -1336,7 +1358,7 @@
   
   
     <li class="md-nav__item">
-      <a href="guides/troubleshooting/" class="md-nav__link">
+      <a href="../../guides/troubleshooting/" class="md-nav__link">
         
   
   
@@ -1371,7 +1393,7 @@
   
   
     <li class="md-nav__item">
-      <a href="contributing/" class="md-nav__link">
+      <a href="../../contributing/" class="md-nav__link">
         
   
   
@@ -1399,9 +1421,7 @@
             
             
               
-                
-              
-              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" hidden>
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
                 <div class="md-sidebar__scrollwrap">
                   <div class="md-sidebar__inner">
                     
@@ -1412,6 +1432,8 @@
   
   
   
+    
+  
   
     <label class="md-nav__title" for="__toc">
       <span class="md-nav__icon md-icon"></span>
@@ -1420,10 +1442,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#what-it-checks" class="md-nav__link">
+  <a href="#sample-output" class="md-nav__link">
     <span class="md-ellipsis">
       
-        What it checks
+        Sample output
       
     </span>
   </a>
@@ -1431,10 +1453,21 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#navigate-the-docs" class="md-nav__link">
+  <a href="#useful-commands" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Navigate the docs
+        Useful commands
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#next-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Next steps
       
     </span>
   </a>
@@ -1455,113 +1488,46 @@
               <article class="md-content__inner md-typeset">
                 
                   
-  
-
 
 
   
   
 
 
-<div class="hero">
-  <img src="assets/logo-home.png" alt="kubectl-audit Kubernetes health check plugin" class="hero-logo" />
-  <h1>kubectl-audit</h1>
-  <p class="tagline">Kubernetes cluster health, straight from your terminal.</p>
-  <div class="install-pill">kubectl krew install codenio/audit</div>
+<h1 id="namespaces">Namespaces<a class="headerlink" href="#namespaces" title="Permanent link">&para;</a></h1>
+<p><code>kubectl audit ns</code> lists namespaces that need attention — either stuck in <strong><code>Terminating</code></strong> phase, or <strong><code>Active</code></strong> but containing <strong>no workloads</strong>.</p>
+<p>Workloads checked: Pods, Deployments, StatefulSets, DaemonSets, ReplicaSets, Jobs, and CronJobs. ConfigMaps, Secrets, and Services alone do <strong>not</strong> count.</p>
+<p>Namespaces are cluster-scoped; <code>-n</code> and <code>-A</code> do not apply. Use <code>-l</code> / <code>--selector</code> to filter namespaces by label.</p>
+<div class="admonition info">
+<p class="admonition-title">Info</p>
+<p>There is no demo manifest for namespaces — empty or stuck namespaces are cluster-specific. Run against your own cluster.</p>
 </div>
-
-<p><code>kubectl-audit</code> is a <a href="https://kubernetes.io/docs/tasks/extend-kubectl/kubectl-plugins/"><code>kubectl</code> plugin</a> that surfaces Kubernetes resources failing common health checks — without switching tools or writing custom scripts.</p>
-<p>Use it for <strong>incident triage</strong>, <strong>SRE runbooks</strong>, <strong>pre-deploy smoke checks</strong>, and <strong>CI/CD gates</strong>.</p>
-<p><img alt="kubectl audit pods — terminal demo" class="demo-gif" src="assets/audit-pods.gif" /></p>
-<p class="demo-gif-caption"><code>kubectl audit pods</code> surfaces unhealthy pods with a summary line and attention table.</p>
-
-<hr />
-<h2 id="what-it-checks">What it checks<a class="headerlink" href="#what-it-checks" title="Permanent link">&para;</a></h2>
-<table>
-<thead>
-<tr>
-<th>Resource</th>
-<th>Flagged when…</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><strong>Pods</strong></td>
-<td>Phase ≠ <code>Running</code>, any container not <code>Ready</code>, or restart count ≥ 5</td>
-</tr>
-<tr>
-<td><strong>Containers</strong></td>
-<td>Per-container: image pull errors, crash loops, not ready, high restarts</td>
-</tr>
-<tr>
-<td><strong>Nodes</strong></td>
-<td><code>NotReady</code> or <code>SchedulingDisabled</code> (cordoned)</td>
-</tr>
-<tr>
-<td><strong>Namespaces</strong></td>
-<td><code>Terminating</code>, or no workloads (Pods, Deployments, StatefulSets, DaemonSets, ReplicaSets, Jobs, CronJobs)</td>
-</tr>
-<tr>
-<td><strong>PV / PVC</strong></td>
-<td>Not in <code>Bound</code> phase (<code>Pending</code>, <code>Lost</code>, <code>Released</code>, <code>Failed</code>)</td>
-</tr>
-<tr>
-<td><strong>Jobs</strong></td>
-<td>Failed — including backoff and deadline limit failures</td>
-</tr>
-<tr>
-<td><strong>CronJobs</strong></td>
-<td><code>suspend: true</code></td>
-</tr>
-<tr>
-<td><strong>Services</strong></td>
-<td>Non-empty selector with no matching Pods in the namespace</td>
-</tr>
-<tr>
-<td><strong>Deployments</strong></td>
-<td><code>spec.replicas: 0</code>, or <code>readyReplicas</code> &lt; desired</td>
-</tr>
-<tr>
-<td><strong>Events</strong></td>
-<td><code>type: Warning</code></td>
-</tr>
-</tbody>
-</table>
-<p>See <a href="reference/audit-rules/">Audit Rules</a> for exact detection thresholds.</p>
-<hr />
-<h2 id="navigate-the-docs">Navigate the docs<a class="headerlink" href="#navigate-the-docs" title="Permanent link">&para;</a></h2>
-<div class="grid-cards">
-  <a href="getting-started/install/" class="grid-card">
-    <div class="card-icon">🚀</div>
-    <h3>Installation</h3>
-    <p>Krew, from source, verify</p>
-  </a>
-  <a href="getting-started/quickstart/" class="grid-card">
-    <div class="card-icon">⚡</div>
-    <h3>Quick Start</h3>
-    <p>Common workflows and first commands</p>
-  </a>
-  <a href="reference/audit-rules/" class="grid-card">
-    <div class="card-icon">📋</div>
-    <h3>Audit Rules</h3>
-    <p>Every check, threshold, and detection logic</p>
-  </a>
-  <a href="reference/subcommands/" class="grid-card">
-    <div class="card-icon">🔧</div>
-    <h3>Subcommands</h3>
-    <p>Full subcommand and flag reference</p>
-  </a>
-  <a href="guides/troubleshooting/" class="grid-card">
-    <div class="card-icon">🔍</div>
-    <h3>Troubleshooting</h3>
-    <p>Common errors and fixes</p>
-  </a>
-  <a href="guides/cicd/" class="grid-card">
-    <div class="card-icon">🔄</div>
-    <h3>CI/CD Integration</h3>
-    <p>GitHub Actions, exit codes, scripting</p>
-  </a>
-</div>
+<h2 id="sample-output">Sample output<a class="headerlink" href="#sample-output" title="Permanent link">&para;</a></h2>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>$ kubectl audit ns
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>-------------------------------------------------------
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>Namespace Audit summary: total = 42 benign = 38 attention = 4
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>-------------------------------------------------------
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>Namespace that requires attention
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>NAME              STATUS        AGE
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>kube-public       Active        400d
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>old-team-a        Active        90d
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>stuck-delete      Terminating   2d
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>unused-staging    Active        14d
+</span></code></pre></div>
+<p><strong><code>Terminating</code></strong> — deletion is stuck; resources may remain and block removal.<br />
+<strong><code>Active</code> (empty)</strong> — no Pods, Deployments, StatefulSets, DaemonSets, ReplicaSets, Jobs, or CronJobs; often safe to delete after review.</p>
+<h2 id="useful-commands">Useful commands<a class="headerlink" href="#useful-commands" title="Permanent link">&para;</a></h2>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>kubectl<span class="w"> </span>audit<span class="w"> </span>ns
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>kubectl<span class="w"> </span>audit<span class="w"> </span>namespace<span class="w"> </span>-l<span class="w"> </span><span class="nv">team</span><span class="o">=</span>platform
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>kubectl<span class="w"> </span>audit<span class="w"> </span>ns<span class="w"> </span>-o<span class="w"> </span>json<span class="w"> </span><span class="p">|</span><span class="w"> </span>jq<span class="w"> </span><span class="s1">&#39;.items[] | {name: .metadata.name, phase: .status.phase}&#39;</span>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>kubectl<span class="w"> </span>audit<span class="w"> </span>ns<span class="w"> </span>-o<span class="w"> </span>wide
+</span></code></pre></div>
+<h2 id="next-steps">Next steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h2>
+<ul>
+<li>See detection rules → <a href="../../reference/audit-rules/#namespaces">Audit Rules: Namespaces</a></li>
+<li>Delete an unused namespace: <code>kubectl delete namespace &lt;name&gt;</code></li>
+<li>Debug a stuck namespace: <code>kubectl get namespace &lt;name&gt; -o yaml</code></li>
+</ul>
 
 
 
@@ -1574,8 +1540,6 @@
 
 
 
-
-  
 
 
 
@@ -1601,19 +1565,33 @@
   
     
       
-        
-      
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../nodes/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Nodes">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Nodes
+              </div>
+            </div>
+          </a>
         
         
           
-          <a href="getting-started/" class="md-footer__link md-footer__link--next" aria-label="Next: Getting Started">
+          <a href="../jobs/" class="md-footer__link md-footer__link--next" aria-label="Next: Jobs &amp; CronJobs">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Getting Started
+                Jobs & CronJobs
               </div>
             </div>
             <div class="md-footer__button md-icon">
@@ -1669,10 +1647,10 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": ".", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.top", "navigation.footer", "navigation.indexes", "navigation.instant", "navigation.instant.progress", "search.highlight", "search.suggest", "search.share", "content.code.copy", "content.code.annotate", "content.tabs.link", "announce.dismiss", "toc.follow"], "search": "assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.top", "navigation.footer", "navigation.indexes", "navigation.instant", "navigation.instant.progress", "search.highlight", "search.suggest", "search.share", "content.code.copy", "content.code.annotate", "content.tabs.link", "announce.dismiss", "toc.follow"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="assets/javascripts/bundle.d7400e89.min.js"></script>
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
       
     
   </body>

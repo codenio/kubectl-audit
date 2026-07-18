@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
     
     
       
@@ -31,7 +31,7 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
       
         
         <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
@@ -861,6 +861,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#namespace" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        namespace
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#pvc" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1060,6 +1071,8 @@
       
         
       
+        
+      
     
     
     
@@ -1185,6 +1198,34 @@
     
   
     Nodes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../examples/namespaces/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Namespaces
   
 
     
@@ -1566,6 +1607,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#namespace" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        namespace
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#pvc" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1711,6 +1763,11 @@
 <td>Cluster-wide</td>
 </tr>
 <tr>
+<td><code>namespace</code></td>
+<td><code>namespaces</code>, <code>ns</code></td>
+<td>Cluster-wide</td>
+</tr>
+<tr>
 <td><code>pvc</code></td>
 <td><code>pvcs</code>, <code>persistentvolumeclaim</code>, <code>persistentvolumeclaims</code></td>
 <td>Namespaced</td>
@@ -1776,34 +1833,47 @@
 <p><strong>Flagged when:</strong> <code>NotReady</code> or <code>SchedulingDisabled</code> (cordoned via <code>kubectl cordon</code>).<br />
 Nodes are cluster-scoped — <code>-n</code> and <code>-A</code> do not apply.</p>
 <hr />
+<h2 id="namespace">namespace<a class="headerlink" href="#namespace" title="Permanent link">&para;</a></h2>
+<p>Lists namespaces that are stuck deleting or contain no workloads.</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>kubectl<span class="w"> </span>audit<span class="w"> </span>namespace<span class="w"> </span><span class="o">[</span>-l<span class="w"> </span>SELECTOR<span class="o">]</span><span class="w"> </span><span class="o">[</span>-o<span class="w"> </span>FORMAT<span class="o">]</span>
+</span></code></pre></div>
+<p><strong>Aliases:</strong> <code>namespaces</code>, <code>ns</code></p>
+<p><strong>Flagged when:</strong></p>
+<ul>
+<li><code>status.phase == Terminating</code> (stuck deletion), <strong>or</strong></li>
+<li>the namespace has <strong>no workloads</strong> — none of: Pods, Deployments, StatefulSets, DaemonSets, ReplicaSets, Jobs, or CronJobs</li>
+</ul>
+<p>ConfigMaps, Secrets, Services, and other non-workload objects alone do <strong>not</strong> prevent a namespace from being flagged as empty.</p>
+<p>Namespaces are cluster-scoped — <code>-n</code> and <code>-A</code> do not apply. Use <code>-l</code> / <code>--selector</code> to filter the namespace list (for example <code>kubectl audit ns -l team=platform</code>).</p>
+<hr />
 <h2 id="pvc">pvc<a class="headerlink" href="#pvc" title="Permanent link">&para;</a></h2>
 <p>Lists PersistentVolumeClaims not in <code>Bound</code> phase.</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>kubectl<span class="w"> </span>audit<span class="w"> </span>pvc<span class="w"> </span><span class="o">[</span>-n<span class="w"> </span>NAMESPACE<span class="o">]</span><span class="w"> </span><span class="o">[</span>-A<span class="o">]</span><span class="w"> </span><span class="o">[</span>-o<span class="w"> </span>FORMAT<span class="o">]</span>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>kubectl<span class="w"> </span>audit<span class="w"> </span>pvc<span class="w"> </span><span class="o">[</span>-n<span class="w"> </span>NAMESPACE<span class="o">]</span><span class="w"> </span><span class="o">[</span>-A<span class="o">]</span><span class="w"> </span><span class="o">[</span>-o<span class="w"> </span>FORMAT<span class="o">]</span>
 </span></code></pre></div>
 <p><strong>Flagged phases:</strong> <code>Pending</code>, <code>Lost</code></p>
 <hr />
 <h2 id="pv">pv<a class="headerlink" href="#pv" title="Permanent link">&para;</a></h2>
 <p>Lists PersistentVolumes not in <code>Bound</code> phase.</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>kubectl<span class="w"> </span>audit<span class="w"> </span>pv<span class="w"> </span><span class="o">[</span>-o<span class="w"> </span>FORMAT<span class="o">]</span>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>kubectl<span class="w"> </span>audit<span class="w"> </span>pv<span class="w"> </span><span class="o">[</span>-o<span class="w"> </span>FORMAT<span class="o">]</span>
 </span></code></pre></div>
 <p><strong>Flagged phases:</strong> <code>Available</code>, <code>Released</code>, <code>Failed</code><br />
 PVs are cluster-scoped — <code>-n</code> and <code>-A</code> do not apply.</p>
 <hr />
 <h2 id="jobs">jobs<a class="headerlink" href="#jobs" title="Permanent link">&para;</a></h2>
 <p>Lists failed Jobs.</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>kubectl<span class="w"> </span>audit<span class="w"> </span><span class="nb">jobs</span><span class="w"> </span><span class="o">[</span>-n<span class="w"> </span>NAMESPACE<span class="o">]</span><span class="w"> </span><span class="o">[</span>-A<span class="o">]</span><span class="w"> </span><span class="o">[</span>-l<span class="w"> </span>SELECTOR<span class="o">]</span><span class="w"> </span><span class="o">[</span>-o<span class="w"> </span>FORMAT<span class="o">]</span>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>kubectl<span class="w"> </span>audit<span class="w"> </span><span class="nb">jobs</span><span class="w"> </span><span class="o">[</span>-n<span class="w"> </span>NAMESPACE<span class="o">]</span><span class="w"> </span><span class="o">[</span>-A<span class="o">]</span><span class="w"> </span><span class="o">[</span>-l<span class="w"> </span>SELECTOR<span class="o">]</span><span class="w"> </span><span class="o">[</span>-o<span class="w"> </span>FORMAT<span class="o">]</span>
 </span></code></pre></div>
 <p><strong>Flagged when:</strong> <code>status.failed &gt; 0</code> (includes backoff limit reached, active deadline exceeded).</p>
 <hr />
 <h2 id="cronjobs">cronjobs<a class="headerlink" href="#cronjobs" title="Permanent link">&para;</a></h2>
 <p>Lists suspended CronJobs.</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>kubectl<span class="w"> </span>audit<span class="w"> </span>cronjobs<span class="w"> </span><span class="o">[</span>-n<span class="w"> </span>NAMESPACE<span class="o">]</span><span class="w"> </span><span class="o">[</span>-A<span class="o">]</span><span class="w"> </span><span class="o">[</span>-l<span class="w"> </span>SELECTOR<span class="o">]</span><span class="w"> </span><span class="o">[</span>-o<span class="w"> </span>FORMAT<span class="o">]</span>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>kubectl<span class="w"> </span>audit<span class="w"> </span>cronjobs<span class="w"> </span><span class="o">[</span>-n<span class="w"> </span>NAMESPACE<span class="o">]</span><span class="w"> </span><span class="o">[</span>-A<span class="o">]</span><span class="w"> </span><span class="o">[</span>-l<span class="w"> </span>SELECTOR<span class="o">]</span><span class="w"> </span><span class="o">[</span>-o<span class="w"> </span>FORMAT<span class="o">]</span>
 </span></code></pre></div>
 <p><strong>Flagged when:</strong> <code>spec.suspend = true</code></p>
 <hr />
 <h2 id="service">service<a class="headerlink" href="#service" title="Permanent link">&para;</a></h2>
 <p>Lists Services whose selector matches no Pods.</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>kubectl<span class="w"> </span>audit<span class="w"> </span>service<span class="w"> </span><span class="o">[</span>-n<span class="w"> </span>NAMESPACE<span class="o">]</span><span class="w"> </span><span class="o">[</span>-A<span class="o">]</span><span class="w"> </span><span class="o">[</span>-l<span class="w"> </span>SELECTOR<span class="o">]</span><span class="w"> </span><span class="o">[</span>-o<span class="w"> </span>FORMAT<span class="o">]</span>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>kubectl<span class="w"> </span>audit<span class="w"> </span>service<span class="w"> </span><span class="o">[</span>-n<span class="w"> </span>NAMESPACE<span class="o">]</span><span class="w"> </span><span class="o">[</span>-A<span class="o">]</span><span class="w"> </span><span class="o">[</span>-l<span class="w"> </span>SELECTOR<span class="o">]</span><span class="w"> </span><span class="o">[</span>-o<span class="w"> </span>FORMAT<span class="o">]</span>
 </span></code></pre></div>
 <p><strong>Flagged when:</strong> non-empty <code>spec.selector</code> with no matching Pods in the namespace.<br />
 <strong>Skipped:</strong> <code>type: ExternalName</code>, empty selectors.</p>
@@ -1814,14 +1884,14 @@ PVs are cluster-scoped — <code>-n</code> and <code>-A</code> do not apply.</p>
 <hr />
 <h2 id="deploy">deploy<a class="headerlink" href="#deploy" title="Permanent link">&para;</a></h2>
 <p>Lists Deployments that are scaled down or have unhealthy replicas.</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>kubectl<span class="w"> </span>audit<span class="w"> </span>deploy<span class="w"> </span><span class="o">[</span>-n<span class="w"> </span>NAMESPACE<span class="o">]</span><span class="w"> </span><span class="o">[</span>-A<span class="o">]</span><span class="w"> </span><span class="o">[</span>-l<span class="w"> </span>SELECTOR<span class="o">]</span><span class="w"> </span><span class="o">[</span>-o<span class="w"> </span>FORMAT<span class="o">]</span>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>kubectl<span class="w"> </span>audit<span class="w"> </span>deploy<span class="w"> </span><span class="o">[</span>-n<span class="w"> </span>NAMESPACE<span class="o">]</span><span class="w"> </span><span class="o">[</span>-A<span class="o">]</span><span class="w"> </span><span class="o">[</span>-l<span class="w"> </span>SELECTOR<span class="o">]</span><span class="w"> </span><span class="o">[</span>-o<span class="w"> </span>FORMAT<span class="o">]</span>
 </span></code></pre></div>
 <p><strong>Flagged when:</strong> <code>spec.replicas == 0</code>, or <code>readyReplicas &lt; desired</code> when <code>desired &gt; 0</code>.<br />
 <code>desired</code> defaults to <strong>1</strong> when <code>spec.replicas</code> is unset (matches Kubernetes API default).</p>
 <hr />
 <h2 id="events">events<a class="headerlink" href="#events" title="Permanent link">&para;</a></h2>
 <p>Lists Warning events.</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>kubectl<span class="w"> </span>audit<span class="w"> </span>events<span class="w"> </span><span class="o">[</span>-n<span class="w"> </span>NAMESPACE<span class="o">]</span><span class="w"> </span><span class="o">[</span>-A<span class="o">]</span><span class="w"> </span><span class="o">[</span>-l<span class="w"> </span>SELECTOR<span class="o">]</span><span class="w"> </span><span class="o">[</span>-o<span class="w"> </span>FORMAT<span class="o">]</span>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>kubectl<span class="w"> </span>audit<span class="w"> </span>events<span class="w"> </span><span class="o">[</span>-n<span class="w"> </span>NAMESPACE<span class="o">]</span><span class="w"> </span><span class="o">[</span>-A<span class="o">]</span><span class="w"> </span><span class="o">[</span>-l<span class="w"> </span>SELECTOR<span class="o">]</span><span class="w"> </span><span class="o">[</span>-o<span class="w"> </span>FORMAT<span class="o">]</span>
 </span></code></pre></div>
 <p><strong>Flagged when:</strong> <code>type = Warning</code>. Normal events are excluded.</p>
 <hr />
@@ -1882,8 +1952,8 @@ PVs are cluster-scoped — <code>-n</code> and <code>-A</code> do not apply.</p>
 </table>
 <hr />
 <h2 id="getting-help">Getting help<a class="headerlink" href="#getting-help" title="Permanent link">&para;</a></h2>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>kubectl<span class="w"> </span>audit<span class="w"> </span>--help
-</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>kubectl<span class="w"> </span>audit<span class="w"> </span>&lt;subcommand&gt;<span class="w"> </span>--help
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>kubectl<span class="w"> </span>audit<span class="w"> </span>--help
+</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>kubectl<span class="w"> </span>audit<span class="w"> </span>&lt;subcommand&gt;<span class="w"> </span>--help
 </span></code></pre></div>
 
 
@@ -2007,7 +2077,7 @@ PVs are cluster-scoped — <code>-n</code> and <code>-A</code> do not apply.</p>
       <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.top", "navigation.footer", "navigation.indexes", "navigation.instant", "navigation.instant.progress", "search.highlight", "search.suggest", "search.share", "content.code.copy", "content.code.annotate", "content.tabs.link", "announce.dismiss", "toc.follow"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
       
     
   </body>
