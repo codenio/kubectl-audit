@@ -11,14 +11,14 @@
 [![Docs](https://img.shields.io/badge/docs-mkdocs-blue?logo=readthedocs)](https://codenio.github.io/kubectl-audit/)
 [![Release](https://github.com/codenio/kubectl-audit/actions/workflows/release.yml/badge.svg)](https://github.com/codenio/kubectl-audit/actions/workflows/release.yml)
 
-**Kubernetes `kubectl` plugin for cluster health: find unhealthy pods, container issues, nodes, storage, batch workloads, Services with no backing Pods, Deployments scaled to zero or under desired ready replicas, and Warning events.**
+**Kubernetes `kubectl` plugin for cluster health: find unhealthy pods, container issues, nodes, namespaces, storage, batch workloads, Services with no backing Pods, Deployments scaled to zero or under desired ready replicas, and Warning events.**
 <p align="center">
   <img src="docs/assets/audit-pods.gif" alt="kubectl audit pods listing unhealthy pods with summary counts" width="900"/>
 </p>
 
 > **[📖 Full documentation → codenio.github.io/kubectl-audit](https://codenio.github.io/kubectl-audit/)**
 
-[`kubectl-audit`](https://github.com/codenio/kubectl-audit) is a [`kubectl` plugin](https://kubernetes.io/docs/tasks/extend-kubectl/kubectl-plugins/) ([Krew](#install)) that surfaces resources failing common checks—**pods** that are not fully healthy (including high **restart counts** and bad phases such as **CrashLoopBackOff** or **ImagePullBackOff**), **containers** as individual rows (init and app, derived from pods), **nodes** that are **NotReady** or **cordoned** (**SchedulingDisabled**), **PersistentVolumes** (PV) and **PersistentVolumeClaims** (PVC) not **Bound**, **failed Jobs**, **suspended CronJobs**, **Services** whose **pod selector matches no Pods** in the same namespace (skipping **ExternalName** and empty selectors), and **Deployments** with **`spec.replicas` set to 0** or **`status.readyReplicas` below desired** (desired is **`spec.replicas`**, or **1** when replicas is unset, matching the API default), and **Warning events** (`type=Warning`; Normal events are treated as benign). For most kinds, output matches [`kubectl get`](https://kubernetes.io/docs/reference/kubectl/generated/kubectl_get/) printers (default table, `-o wide`, JSON, YAML, custom columns, Go templates). The **containers** subcommand uses a dedicated table and supports `-o json`, `-o yaml`, `-o name`, default table, and `-o wide` (see [Output formats](#output-formats)).
+[`kubectl-audit`](https://github.com/codenio/kubectl-audit) is a [`kubectl` plugin](https://kubernetes.io/docs/tasks/extend-kubectl/kubectl-plugins/) ([Krew](#install)) that surfaces resources failing common checks—**pods** that are not fully healthy (including high **restart counts** and bad phases such as **CrashLoopBackOff** or **ImagePullBackOff**), **containers** as individual rows (init and app, derived from pods), **nodes** that are **NotReady** or **cordoned** (**SchedulingDisabled**), **namespaces** that are **Terminating** or contain **no workloads** (Pods, Deployments, StatefulSets, DaemonSets, ReplicaSets, Jobs, or CronJobs), **PersistentVolumes** (PV) and **PersistentVolumeClaims** (PVC) not **Bound**, **failed Jobs**, **suspended CronJobs**, **Services** whose **pod selector matches no Pods** in the same namespace (skipping **ExternalName** and empty selectors), and **Deployments** with **`spec.replicas` set to 0** or **`status.readyReplicas` below desired** (desired is **`spec.replicas`**, or **1** when replicas is unset, matching the API default), and **Warning events** (`type=Warning`; Normal events are treated as benign). For most kinds, output matches [`kubectl get`](https://kubernetes.io/docs/reference/kubectl/generated/kubectl_get/) printers (default table, `-o wide`, JSON, YAML, custom columns, Go templates). The **containers** subcommand uses a dedicated table and supports `-o json`, `-o yaml`, `-o name`, default table, and `-o wide` (see [Output formats](#output-formats)).
 
 Use it for **Kubernetes troubleshooting**, **SRE / platform** triage, and **pre-deploy smoke checks** without leaving the CLI.
 
@@ -43,6 +43,7 @@ Use it for **Kubernetes troubleshooting**, **SRE / platform** triage, and **pre-
 | **Pods** | Pods that are not in a good steady state or have risky restart behavior (see [Resources and filters](#resources-and-filters)). |
 | **Containers** | Per-container problems (waits, pull errors, readiness, high restarts) with optional filter by pod name. |
 | **Nodes** | Nodes you cannot schedule to or that are not ready. |
+| **Namespaces** | Namespaces stuck in **Terminating**, or with **no workloads** (no Pods, Deployments, StatefulSets, DaemonSets, ReplicaSets, Jobs, or CronJobs). |
 | **Storage (PV / PVC)** | Volumes and claims stuck outside **Bound**. |
 | **Jobs / CronJobs** | Failed jobs and cron jobs that are **suspended**. |
 | **Services** | Services with a **non-empty** pod **selector** and **no** matching **Pods** in that namespace (**ExternalName** and empty selectors are skipped). |
@@ -108,6 +109,7 @@ Standard `kubectl` config applies: current context, `KUBECONFIG`, `-n` / `--name
 | `containers` | `container`                                               | **Init and app** container rows that need attention (image pull / crash-style waiting reasons, high restarts, not ready when the pod is not in a terminal phase, failed init, etc.). Rows include **POD** (pod name) and **NAME** (container name). Use **`-p` / `--pod`** with an exact pod `metadata.name` to scope to one pod (see `kubectl audit containers --help` Usage line). |
 | `pods`       | `pod`, `po`                                               | Pods that need attention: phase is not `Running`, any regular container is not `Ready`, **or** any regular or init container has `RestartCount` ≥ **5** (threshold is fixed in code). `Succeeded` / `Completed` job pods are included because they are not in a running steady state. |
 | `nodes`      | `node`, `no`                                              | Nodes that are `NotReady` or have `SchedulingDisabled`.                                                                                                                                                                                                                               |
+| `namespace`  | `namespaces`, `ns`                                        | Namespaces in **`Terminating`** phase, or with **no workloads** (Pods, Deployments, StatefulSets, DaemonSets, ReplicaSets, Jobs, or CronJobs). ConfigMaps, Secrets, and Services alone do not count.                                                                                 |
 | `pvc`        | `pvcs`, `persistentvolumeclaim`, `persistentvolumeclaims` | PVCs not in `Bound` phase.                                                                                                                                                                                                                                                            |
 | `pv`         | `pvs`, `persistentvolume`, `persistentvolumes`            | PVs not in `Bound` phase.                                                                                                                                                                                                                                                             |
 | `jobs`       | `job`                                                     | Failed jobs (including backoff / deadline failures).                                                                                                                                                                                                                                  |
@@ -128,11 +130,12 @@ Further notes live in the [full documentation](https://codenio.github.io/kubectl
 
 ## Output formats
 
-For **pods**, **nodes**, **pv**, **pvc**, **jobs**, **cronjobs**, **service**, **deploy**, and **events**, [`kubectl get`](https://kubernetes.io/docs/reference/kubectl/generated/kubectl_get/)-style `-o` flags work as usual, for example:
+For **pods**, **nodes**, **namespace**, **pv**, **pvc**, **jobs**, **cronjobs**, **service**, **deploy**, and **events**, [`kubectl get`](https://kubernetes.io/docs/reference/kubectl/generated/kubectl_get/)-style `-o` flags work as usual, for example:
 
 ```bash
 kubectl audit pods -o wide
 kubectl audit nodes -o json
+kubectl audit ns -o json
 kubectl audit pvc -o yaml
 kubectl audit jobs -o custom-columns=NAME:.metadata.name
 kubectl audit service -o json
@@ -163,6 +166,11 @@ kubectl audit po --all-namespaces
 
 # Pods: label filter with all namespaces
 kubectl audit pods -A -l app=web
+
+# Nodes and namespaces (cluster-scoped; -n / -A do not apply)
+kubectl audit nodes
+kubectl audit ns
+kubectl audit namespace -l team=platform
 
 # PVC / PV
 kubectl audit pvc -A
@@ -205,7 +213,7 @@ Each subfolder under [`examples/`](examples/README.md) has a **`demo.yaml`** plu
 | [`examples/audit-pvc/`](examples/audit-pvc/README.md) | `pvc` |
 | [`examples/audit-pv/`](examples/audit-pv/README.md) | `pv` |
 
-**Nodes** are not included (cluster-specific). There is no `audit-nodes` example folder.
+**Nodes** and **namespaces** are not included in demo folders (cluster-specific). There is no `audit-nodes` or `audit-namespace` example folder.
 
 ### Sample output
 
@@ -277,6 +285,23 @@ worker-4        NotReady,SchedulingDisabled   <none>   45h     v1.33.3
 ...
 ...
 ```
+
+**Namespaces**
+
+```bash
+$ kubectl audit ns
+-------------------------------------------------------
+Namespace Audit summary: total = 42 benign = 38 attention = 4
+-------------------------------------------------------
+Namespace that requires attention
+NAME              STATUS        AGE
+kube-public       Active        400d
+old-team-a        Active        90d
+stuck-delete      Terminating   2d
+unused-staging    Active        14d
+```
+
+*( **`Terminating`** — deletion is stuck. **`Active`** with no workloads — namespace has no Pods, Deployments, StatefulSets, DaemonSets, ReplicaSets, Jobs, or CronJobs; ConfigMaps and Services alone do not count.)*
 
 **Persistent volumes**
 

@@ -1,6 +1,6 @@
 ---
 title: Kubernetes Cluster Health Plugin
-description: kubectl plugin to find unhealthy pods, nodes, storage, services, deployments and warning events from the command line.
+description: kubectl plugin to find unhealthy pods, nodes, namespaces, storage, services, deployments and warning events from the command line.
 hide:
   - navigation
   - toc
@@ -29,6 +29,7 @@ Use it for **incident triage**, **SRE runbooks**, **pre-deploy smoke checks**, a
 | **Pods** | Phase ≠ `Running`, any container not `Ready`, or restart count ≥ 5 |
 | **Containers** | Per-container: image pull errors, crash loops, not ready, high restarts |
 | **Nodes** | `NotReady` or `SchedulingDisabled` (cordoned) |
+| **Namespaces** | `Terminating`, or no workloads (Pods, Deployments, StatefulSets, DaemonSets, ReplicaSets, Jobs, CronJobs) |
 | **PV / PVC** | Not in `Bound` phase (`Pending`, `Lost`, `Released`, `Failed`) |
 | **Jobs** | Failed — including backoff and deadline limit failures |
 | **CronJobs** | `suspend: true` |

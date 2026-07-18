@@ -23,6 +23,7 @@ import (
 var auditGVR = map[string]schema.GroupVersionResource{
 	"pods":        {Group: "", Version: "v1", Resource: "pods"},
 	"nodes":       {Group: "", Version: "v1", Resource: "nodes"},
+	"namespaces":  {Group: "", Version: "v1", Resource: "namespaces"},
 	"pv":          {Group: "", Version: "v1", Resource: "persistentvolumes"},
 	"pvc":         {Group: "", Version: "v1", Resource: "persistentvolumeclaims"},
 	"jobs":        {Group: "batch", Version: "v1", Resource: "jobs"},
@@ -64,7 +65,7 @@ func AsServerTableIfNeeded(cf *genericclioptions.ConfigFlags, resource string, o
 	}
 	// Cluster-scoped APIs (nodes, PVs) must not include a namespace in the path; using the
 	// kubeconfig's default namespace would produce .../namespaces/<ns>/nodes and a 404.
-	if resource == "nodes" || resource == "pv" {
+	if resource == "nodes" || resource == "pv" || resource == "namespaces" {
 		ns = ""
 	}
 
@@ -161,7 +162,7 @@ func namespaceFromRowRaw(raw []byte) string {
 
 func objectKeysForFilter(obj runtime.Object, resource string) (keys map[string]struct{}, namespaced, empty bool) {
 	keys = make(map[string]struct{})
-	namespaced = resource != "nodes" && resource != "pv"
+	namespaced = resource != "nodes" && resource != "pv" && resource != "namespaces"
 
 	switch list := obj.(type) {
 	case *corev1.PodList:
@@ -172,6 +173,13 @@ func objectKeysForFilter(obj runtime.Object, resource string) (keys map[string]s
 			keys[p.Namespace+"/"+p.Name] = struct{}{}
 		}
 	case *corev1.NodeList:
+		if len(list.Items) == 0 {
+			return keys, false, true
+		}
+		for _, n := range list.Items {
+			keys[n.Name] = struct{}{}
+		}
+	case *corev1.NamespaceList:
 		if len(list.Items) == 0 {
 			return keys, false, true
 		}

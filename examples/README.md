@@ -28,4 +28,4 @@ rm -f /tmp/pause-3.9.tar /tmp/busybox-1.36.tar
 | [audit-pvc](audit-pvc/README.md) | `kubectl audit pvc` |
 | [audit-pv](audit-pv/README.md) | `kubectl audit pv` |
 
-There is **no** `audit-nodes` sample (not portable across clusters). See the main [README](../README.md) for `kubectl audit nodes`.
+There is **no** `audit-nodes` or `audit-namespace` sample (not portable across clusters). See the main [README](../README.md) for `kubectl audit nodes` and `kubectl audit ns`.

@@ -20,6 +20,7 @@ kubectl audit pods
 | See all unhealthy pods | `kubectl audit pods -A` |
 | Drill into a specific pod's containers | `kubectl audit containers -p <pod-name>` |
 | Check which nodes can't schedule work | `kubectl audit nodes` |
+| Find empty or stuck namespaces | `kubectl audit ns` |
 | Find services with no backing pods | `kubectl audit svc -A` |
 | Check deployment rollout health | `kubectl audit deploy -A` |
 | Catch warning events cluster-wide | `kubectl audit events -A` |
@@ -38,6 +39,7 @@ kubectl audit pods
 ```bash
 kubectl audit pods -A
 kubectl audit nodes
+kubectl audit ns
 kubectl audit events -A
 ```
 

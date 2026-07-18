@@ -77,6 +77,7 @@ var auditResourceCommands = []auditResourceCmdDef{
 	{resource: "containers", use: "containers", short: "Audit containers (derived from pods)", aliases: []string{"container"}, podFilter: true},
 	{resource: "pods", use: "pods", short: "Audit pods", aliases: []string{"pod", "po"}},
 	{resource: "nodes", use: "nodes", short: "Audit nodes", aliases: []string{"node", "no"}},
+	{resource: "namespaces", use: "namespace", short: "Audit Terminating or workload-empty namespaces", aliases: []string{"namespaces", "ns"}},
 	{resource: "pv", use: "pv", short: "Audit persistent volumes", aliases: []string{"pvs", "persistentvolume", "persistentvolumes"}},
 	{resource: "pvc", use: "pvc", short: "Audit persistent volume claims", aliases: []string{"pvcs", "persistentvolumeclaim", "persistentvolumeclaims"}},
 	{resource: "jobs", use: "jobs", short: "Audit jobs", aliases: []string{"job"}},
@@ -141,6 +142,8 @@ func runAudit(res string, cmd *cobra.Command) error {
 		obj, totalInScope, benignInScope, err = plugin.AuditPods(KubernetesConfigFlags, opts)
 	case "nodes":
 		obj, totalInScope, benignInScope, err = plugin.AuditNodes(KubernetesConfigFlags, opts)
+	case "namespaces":
+		obj, totalInScope, benignInScope, err = plugin.AuditNamespaces(KubernetesConfigFlags, opts)
 	case "pv":
 		obj, totalInScope, benignInScope, err = plugin.AuditPV(KubernetesConfigFlags, opts)
 	case "pvc":
@@ -214,6 +217,7 @@ var auditGroupKinds = map[string]schema.GroupKind{
 	"containers":  {Group: "", Kind: "Container"},
 	"pods":        {Group: "", Kind: "Pod"},
 	"nodes":       {Group: "", Kind: "Node"},
+	"namespaces":  {Group: "", Kind: "Namespace"},
 	"pv":          {Group: "", Kind: "PersistentVolume"},
 	"pvc":         {Group: "", Kind: "PersistentVolumeClaim"},
 	"jobs":        {Group: "batch", Kind: "Job"},
@@ -310,6 +314,8 @@ func auditResourcePhrase(resource string) string {
 		return "pods"
 	case "nodes":
 		return "nodes"
+	case "namespaces":
+		return "namespaces"
 	case "pv":
 		return "persistent volumes"
 	case "pvc":
