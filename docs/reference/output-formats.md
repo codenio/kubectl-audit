@@ -7,11 +7,12 @@ description: All supported -o output formats for kubectl-audit subcommands.
 
 ## Standard subcommands
 
-For `pods`, `nodes`, `pv`, `pvc`, `jobs`, `cronjobs`, `service`, `deploy`, and `events`, the `-o` flag works identically to `kubectl get`:
+For `pods`, `nodes`, `namespace`, `pv`, `pvc`, `jobs`, `cronjobs`, `service`, `deploy`, and `events`, the `-o` flag works identically to `kubectl get`:
 
 ```bash
 kubectl audit pods -o wide
 kubectl audit nodes -o json
+kubectl audit ns -o json
 kubectl audit pvc -o yaml
 kubectl audit jobs -o custom-columns=NAME:.metadata.name
 kubectl audit service -o json

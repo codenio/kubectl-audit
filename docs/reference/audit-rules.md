@@ -40,6 +40,21 @@ A node is flagged if **any** condition is true:
 | `Ready` condition = `False` or `Unknown` | The `NodeReady` condition is not True |
 | `spec.unschedulable = true` | Node is cordoned — `kubectl cordon` sets this flag; shown as `SchedulingDisabled` |
 
+## Namespaces
+
+A namespace is flagged if **either** condition is true:
+
+| Rule | Detail |
+| ---- | ------ |
+| `status.phase == Terminating` | Namespace deletion is stuck |
+| No workloads present | None of the following exist in the namespace: **Pods**, **Deployments**, **StatefulSets**, **DaemonSets**, **ReplicaSets**, **Jobs**, or **CronJobs** |
+
+!!! info "What counts as a workload?"
+    ConfigMaps, Secrets, Services, PVCs, and other objects do **not** count. A namespace with only those resources is flagged as empty.
+
+!!! note "System namespaces"
+    Nearly empty system namespaces (for example `kube-public`) may appear in results. Use `-l` / `--selector` to scope to team or application namespaces if needed.
+
 ## PersistentVolumeClaims (PVC)
 
 | Rule | Flagged phases |

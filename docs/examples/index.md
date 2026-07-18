@@ -19,6 +19,7 @@ Each subcommand has a demo manifest under [`examples/`](https://github.com/coden
 | [PV & PVC](storage.md) | `kubectl audit pv` / `pvc` | `examples/audit-pv/`, `audit-pvc/` |
 | [Events](events.md) | `kubectl audit events` | `examples/audit-events/` |
 | [Nodes](nodes.md) | `kubectl audit nodes` | *(cluster-specific, no demo)* |
+| [Namespaces](namespaces.md) | `kubectl audit ns` | *(cluster-specific, no demo)* |
 
 ## Demo pattern
 

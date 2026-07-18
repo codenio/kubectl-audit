@@ -12,6 +12,7 @@ description: Full reference for all kubectl-audit subcommands, aliases, and flag
 | `pods` | `pod`, `po` | Namespaced |
 | `containers` | `container` | Namespaced |
 | `nodes` | `node`, `no` | Cluster-wide |
+| `namespace` | `namespaces`, `ns` | Cluster-wide |
 | `pvc` | `pvcs`, `persistentvolumeclaim`, `persistentvolumeclaims` | Namespaced |
 | `pv` | `pvs`, `persistentvolume`, `persistentvolumes` | Cluster-wide |
 | `jobs` | `job` | Namespaced |
@@ -67,6 +68,27 @@ kubectl audit nodes [-o FORMAT]
 
 **Flagged when:** `NotReady` or `SchedulingDisabled` (cordoned via `kubectl cordon`).  
 Nodes are cluster-scoped — `-n` and `-A` do not apply.
+
+---
+
+## namespace
+
+Lists namespaces that are stuck deleting or contain no workloads.
+
+```bash
+kubectl audit namespace [-l SELECTOR] [-o FORMAT]
+```
+
+**Aliases:** `namespaces`, `ns`
+
+**Flagged when:**
+
+- `status.phase == Terminating` (stuck deletion), **or**
+- the namespace has **no workloads** — none of: Pods, Deployments, StatefulSets, DaemonSets, ReplicaSets, Jobs, or CronJobs
+
+ConfigMaps, Secrets, Services, and other non-workload objects alone do **not** prevent a namespace from being flagged as empty.
+
+Namespaces are cluster-scoped — `-n` and `-A` do not apply. Use `-l` / `--selector` to filter the namespace list (for example `kubectl audit ns -l team=platform`).
 
 ---
 

@@ -1,0 +1,29 @@
+# Install: pip install pre-commit  (or brew install pre-commit)
+# Setup:  pre-commit install
+# Run:    pre-commit run --all-files
+#
+# Go hooks mirror the Makefile (fmt, vet, test on ./pkg/... and ./cmd/...).
+
+default_language_version:
+  golang: "1.21"
+
+repos:
+  - repo: https://github.com/dnephin/pre-commit-golang
+    rev: v0.5.1
+    hooks:
+      - id: go-fmt
+
+  - repo: local
+    hooks:
+      - id: go-vet
+        name: go vet
+        entry: go vet ./pkg/... ./cmd/...
+        language: system
+        types: [go]
+        pass_filenames: false
+      - id: go-test
+        name: go test
+        entry: go test ./pkg/... ./cmd/...
+        language: system
+        types: [go]
+        pass_filenames: false

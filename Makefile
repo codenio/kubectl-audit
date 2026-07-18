@@ -19,6 +19,11 @@ fmt:
 vet:
 	go vet ./pkg/... ./cmd/...
 
+.PHONY: precommit-install
+precommit-install:
+	@command -v pre-commit >/dev/null 2>&1 || { echo "pre-commit not found; install with: pip install pre-commit (or brew install pre-commit)"; exit 1; }
+	pre-commit install
+
 .PHONY: kubernetes-deps
 kubernetes-deps:
 	go get k8s.io/client-go@v0.28.4 k8s.io/api@v0.28.4 k8s.io/apimachinery@v0.28.4 \

@@ -1,5 +1,5 @@
 site_name: kubectl-audit
-site_description: kubectl plugin for Kubernetes cluster health — find unhealthy pods, nodes, storage, services, deployments and warning events from the command line.
+site_description: kubectl plugin for Kubernetes cluster health — find unhealthy pods, nodes, namespaces, storage, services, deployments and warning events from the command line.
 site_url: https://codenio.github.io/kubectl-audit/
 repo_url: https://github.com/codenio/kubectl-audit
 repo_name: codenio/kubectl-audit
@@ -106,6 +106,7 @@ nav:
       - Pods: examples/pods.md
       - Containers: examples/containers.md
       - Nodes: examples/nodes.md
+      - Namespaces: examples/namespaces.md
       - Jobs & CronJobs: examples/jobs.md
       - Services: examples/services.md
       - Deployments: examples/deployments.md
