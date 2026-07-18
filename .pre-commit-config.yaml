@@ -17,13 +17,13 @@ repos:
     hooks:
       - id: go-vet
         name: go vet
-        entry: go vet ./pkg/... ./cmd/...
+        entry: make vet
         language: system
         types: [go]
         pass_filenames: false
       - id: go-test
         name: go test
-        entry: go test ./pkg/... ./cmd/...
+        entry: make test
         language: system
         types: [go]
         pass_filenames: false
