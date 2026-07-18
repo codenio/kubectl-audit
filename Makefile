@@ -3,9 +3,21 @@ export GO111MODULE=on
 # If proxy.golang.org times out or resets (common on VPN), Go falls back to direct source fetches.
 export GOPROXY ?= https://proxy.golang.org,direct
 
+GO_PACKAGES := ./pkg/... ./cmd/...
+GOTESTSUM ?= gotestsum
+JUNIT_FILE := junit.xml
+COVER_FILE := cover.out
+
 .PHONY: test
 test:
-	go test ./pkg/... ./cmd/... -coverprofile cover.out
+	go test $(GO_PACKAGES) -coverprofile $(COVER_FILE)
+
+.PHONY: test-ci
+test-ci:
+	@command -v $(GOTESTSUM) >/dev/null 2>&1 || { echo "$(GOTESTSUM) not found; run: go install gotest.tools/gotestsum@v1.13.0"; exit 1; }
+	$(GOTESTSUM) --junitfile $(JUNIT_FILE) --format standard-verbose -- \
+		-coverprofile=$(COVER_FILE) -covermode=atomic \
+		$(GO_PACKAGES)
 
 .PHONY: bin
 bin: fmt vet
@@ -13,16 +25,25 @@ bin: fmt vet
 
 .PHONY: fmt
 fmt:
-	go fmt ./pkg/... ./cmd/...
+	go fmt $(GO_PACKAGES)
 
 .PHONY: vet
 vet:
-	go vet ./pkg/... ./cmd/...
+	go vet $(GO_PACKAGES)
+
+.PHONY: precommit
+precommit:
+	@command -v pre-commit >/dev/null 2>&1 || { echo "pre-commit not found; install with: pip install pre-commit (or brew install pre-commit)"; exit 1; }
+	pre-commit run go-fmt --all-files
+	pre-commit run go-vet --all-files
 
 .PHONY: precommit-install
 precommit-install:
 	@command -v pre-commit >/dev/null 2>&1 || { echo "pre-commit not found; install with: pip install pre-commit (or brew install pre-commit)"; exit 1; }
 	pre-commit install
+
+.PHONY: ci
+ci: precommit test-ci bin
 
 .PHONY: kubernetes-deps
 kubernetes-deps:
