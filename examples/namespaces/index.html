@@ -1077,6 +1077,17 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#demo" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Demo
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#sample-output" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1442,6 +1453,17 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#demo" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Demo
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#sample-output" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1498,29 +1520,32 @@
 <p><code>kubectl audit ns</code> lists namespaces that need attention — either stuck in <strong><code>Terminating</code></strong> phase, or <strong><code>Active</code></strong> but containing <strong>no workloads</strong>.</p>
 <p>Workloads checked: Pods, Deployments, StatefulSets, DaemonSets, ReplicaSets, Jobs, and CronJobs. ConfigMaps, Secrets, and Services alone do <strong>not</strong> count.</p>
 <p>Namespaces are cluster-scoped; <code>-n</code> and <code>-A</code> do not apply. Use <code>-l</code> / <code>--selector</code> to filter namespaces by label.</p>
-<div class="admonition info">
-<p class="admonition-title">Info</p>
-<p>There is no demo manifest for namespaces — empty or stuck namespaces are cluster-specific. Run against your own cluster.</p>
-</div>
-<h2 id="sample-output">Sample output<a class="headerlink" href="#sample-output" title="Permanent link">&para;</a></h2>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>$ kubectl audit ns
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>-------------------------------------------------------
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>Namespace Audit summary: total = 42 benign = 38 attention = 4
-</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>-------------------------------------------------------
-</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>Namespace that requires attention
-</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>NAME              STATUS        AGE
-</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>kube-public       Active        400d
-</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>old-team-a        Active        90d
-</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>stuck-delete      Terminating   2d
-</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>unused-staging    Active        14d
+<h2 id="demo">Demo<a class="headerlink" href="#demo" title="Permanent link">&para;</a></h2>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>kubectl<span class="w"> </span>apply<span class="w"> </span>-f<span class="w"> </span>examples/audit-namespace/demo.yaml
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>kubectl<span class="w"> </span><span class="nb">wait</span><span class="w"> </span>--for<span class="o">=</span><span class="nv">condition</span><span class="o">=</span>available<span class="w"> </span>deployment/healthy<span class="w"> </span>-n<span class="w"> </span>kubectl-audit-namespace-workload-demo<span class="w"> </span>--timeout<span class="o">=</span>120s
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>kubectl<span class="w"> </span>delete<span class="w"> </span>namespace<span class="w"> </span>kubectl-audit-namespace-terminating-demo<span class="w"> </span>--wait<span class="o">=</span><span class="nb">false</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>kubectl<span class="w"> </span>audit<span class="w"> </span>ns<span class="w"> </span>-l<span class="w"> </span><span class="nv">demo</span><span class="o">=</span>kubectl-audit-namespace
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>kubectl<span class="w"> </span>patch<span class="w"> </span>namespace<span class="w"> </span>kubectl-audit-namespace-terminating-demo<span class="w"> </span>-p<span class="w"> </span><span class="s1">&#39;{&quot;metadata&quot;:{&quot;finalizers&quot;:[]}}&#39;</span><span class="w"> </span>--type<span class="o">=</span>merge<span class="w"> </span><span class="m">2</span>&gt;/dev/null<span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="nb">true</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>kubectl<span class="w"> </span>delete<span class="w"> </span>-f<span class="w"> </span>examples/audit-namespace/demo.yaml<span class="w"> </span>--ignore-not-found
 </span></code></pre></div>
-<p><strong><code>Terminating</code></strong> — deletion is stuck; resources may remain and block removal.<br />
+<p>See <a href="https://github.com/codenio/kubectl-audit/tree/main/examples/audit-namespace/README.md"><code>examples/audit-namespace/README.md</code></a> for the full walkthrough (empty <strong>Active</strong> namespace, benign workload namespace, and stuck <strong>Terminating</strong> namespace).</p>
+<h2 id="sample-output">Sample output<a class="headerlink" href="#sample-output" title="Permanent link">&para;</a></h2>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>$ kubectl audit ns -l demo=kubectl-audit-namespace
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>-------------------------------------------------------
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>Namespace Audit summary: total = 3 benign = 1 attention = 2
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>-------------------------------------------------------
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>Namespace that requires attention
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>NAME                                      STATUS        AGE
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>kubectl-audit-namespace-empty-demo        Active        2m
+</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>kubectl-audit-namespace-terminating-demo  Terminating   1m
+</span></code></pre></div>
+<p><strong><code>Terminating</code></strong> — deletion is stuck; resources or finalizers may block removal.<br />
 <strong><code>Active</code> (empty)</strong> — no Pods, Deployments, StatefulSets, DaemonSets, ReplicaSets, Jobs, or CronJobs; often safe to delete after review.</p>
 <h2 id="useful-commands">Useful commands<a class="headerlink" href="#useful-commands" title="Permanent link">&para;</a></h2>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>kubectl<span class="w"> </span>audit<span class="w"> </span>ns
-</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>kubectl<span class="w"> </span>audit<span class="w"> </span>namespace<span class="w"> </span>-l<span class="w"> </span><span class="nv">team</span><span class="o">=</span>platform
-</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>kubectl<span class="w"> </span>audit<span class="w"> </span>ns<span class="w"> </span>-o<span class="w"> </span>json<span class="w"> </span><span class="p">|</span><span class="w"> </span>jq<span class="w"> </span><span class="s1">&#39;.items[] | {name: .metadata.name, phase: .status.phase}&#39;</span>
-</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>kubectl<span class="w"> </span>audit<span class="w"> </span>ns<span class="w"> </span>-o<span class="w"> </span>wide
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>kubectl<span class="w"> </span>audit<span class="w"> </span>ns
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>kubectl<span class="w"> </span>audit<span class="w"> </span>namespace<span class="w"> </span>-l<span class="w"> </span><span class="nv">team</span><span class="o">=</span>platform
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>kubectl<span class="w"> </span>audit<span class="w"> </span>ns<span class="w"> </span>-o<span class="w"> </span>json<span class="w"> </span><span class="p">|</span><span class="w"> </span>jq<span class="w"> </span><span class="s1">&#39;.items[] | {name: .metadata.name, phase: .status.phase}&#39;</span>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>kubectl<span class="w"> </span>audit<span class="w"> </span>ns<span class="w"> </span>-o<span class="w"> </span>wide
 </span></code></pre></div>
 <h2 id="next-steps">Next steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h2>
 <ul>
