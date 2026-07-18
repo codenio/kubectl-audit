@@ -1,4 +1,10 @@
 name: docs
+
+run-name: >-
+  ${{ github.event_name == 'workflow_dispatch'
+      && 'Docs · manual deploy'
+      || format('Docs · deploy · {0}', github.ref_name) }}
+
 on:
   push:
     branches:
@@ -13,6 +19,7 @@ permissions:
 
 jobs:
   deploy:
+    name: Deploy GitHub Pages
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
