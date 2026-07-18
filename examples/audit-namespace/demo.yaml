@@ -1,0 +1,79 @@
+# Demo for `kubectl audit ns` (see README).
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: kubectl-audit-namespace-empty-demo
+  labels:
+    demo: kubectl-audit-namespace
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: placeholder-config
+  namespace: kubectl-audit-namespace-empty-demo
+  labels:
+    demo: kubectl-audit-namespace
+data:
+  note: ConfigMaps alone do not count as workloads for the namespace audit.
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: placeholder-secret
+  namespace: kubectl-audit-namespace-empty-demo
+  labels:
+    demo: kubectl-audit-namespace
+type: Opaque
+stringData:
+  token: demo-only
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: placeholder-svc
+  namespace: kubectl-audit-namespace-empty-demo
+  labels:
+    demo: kubectl-audit-namespace
+spec:
+  ports:
+    - port: 80
+      targetPort: 8080
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: kubectl-audit-namespace-workload-demo
+  labels:
+    demo: kubectl-audit-namespace
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: healthy
+  namespace: kubectl-audit-namespace-workload-demo
+  labels:
+    demo: kubectl-audit-namespace
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: healthy
+  template:
+    metadata:
+      labels:
+        app: healthy
+        demo: kubectl-audit-namespace
+    spec:
+      containers:
+        - name: pause
+          image: registry.k8s.io/pause:3.9
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: kubectl-audit-namespace-terminating-demo
+  labels:
+    demo: kubectl-audit-namespace
+  finalizers:
+    - codenio.com/kubectl-audit-demo-block

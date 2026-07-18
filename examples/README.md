@@ -27,5 +27,6 @@ rm -f /tmp/pause-3.9.tar /tmp/busybox-1.36.tar
 | [audit-events](audit-events/README.md) | `kubectl audit events` |
 | [audit-pvc](audit-pvc/README.md) | `kubectl audit pvc` |
 | [audit-pv](audit-pv/README.md) | `kubectl audit pv` |
+| [audit-namespace](audit-namespace/README.md) | `kubectl audit ns` |
 
-There is **no** `audit-nodes` or `audit-namespace` sample (not portable across clusters). See the main [README](../README.md) for `kubectl audit nodes` and `kubectl audit ns`.
+There is **no** `audit-nodes` sample (node state is cluster-specific). See the main [README](../README.md) for `kubectl audit nodes`.

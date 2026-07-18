@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/codenio/kubectl-audit/pkg/plugin"
+	"github.com/codenio/kubectl-audit/pkg/version"
 	"github.com/spf13/cobra"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -33,6 +34,7 @@ and a one-line summary before the table.
 
   Find more information at: https://github.com/codenio/kubectl-audit/blob/main/README.md
 `,
+		Version: version.Info(),
 		Example: `  kubectl audit containers
   kubectl audit containers --pod my-pod-abc
   kubectl audit pods
@@ -43,12 +45,14 @@ and a one-line summary before the table.
   kubectl audit nodes -o json
   kubectl audit pvc -o yaml
   kubectl audit jobs -o custom-columns=NAME:.metadata.name
-  kubectl audit pods -A --selector app=nginx`,
+  kubectl audit pods -A --selector app=nginx
+  kubectl audit --version`,
 		SilenceErrors: true,
 		SilenceUsage:  true,
 		// Cobra adds a "completion" subcommand by default; kubectl already has `kubectl completion`.
 		CompletionOptions: cobra.CompletionOptions{DisableDefaultCmd: true},
 	}
+	root.SetVersionTemplate("{{.Version}}\n")
 	// Default Cobra order is Examples then Available Commands; show subcommands first.
 	root.SetUsageTemplate(auditRootUsageTemplate())
 

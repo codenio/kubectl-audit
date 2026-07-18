@@ -95,6 +95,7 @@ The plugin is a single binary with **subcommands** per audit target (see [Resour
 
 ```bash
 kubectl audit --help
+kubectl audit --version
 kubectl audit pods
 kubectl audit containers
 ```
@@ -212,8 +213,9 @@ Each subfolder under [`examples/`](examples/README.md) has a **`demo.yaml`** plu
 | [`examples/audit-events/`](examples/audit-events/README.md) | `events` (image pull, BackOff, init failure warnings) |
 | [`examples/audit-pvc/`](examples/audit-pvc/README.md) | `pvc` |
 | [`examples/audit-pv/`](examples/audit-pv/README.md) | `pv` |
+| [`examples/audit-namespace/`](examples/audit-namespace/README.md) | `namespace` (empty Active namespace, stuck **Terminating**) |
 
-**Nodes** and **namespaces** are not included in demo folders (cluster-specific). There is no `audit-nodes` or `audit-namespace` example folder.
+**Nodes** are not included in demo folders (cluster-specific). There is no `audit-nodes` example folder.
 
 ### Sample output
 

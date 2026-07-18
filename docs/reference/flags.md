@@ -27,6 +27,12 @@
 
 For `containers`: applies to the Pod list. For `service`: applies to the Service list. For `deploy`: applies to the Deployment list.
 
+## Version
+
+| Flag | Description |
+| ---- | ----------- |
+| `--version` | Print plugin version (release tag, commit, and build date when embedded at build time) |
+
 ## containers-specific flag
 
 | Flag | Short | Description |
@@ -37,5 +43,6 @@ For `containers`: applies to the Pod list. For `service`: applies to the Service
 
 ```bash
 kubectl audit --help
+kubectl audit --version
 kubectl audit <subcommand> --help
 ```
