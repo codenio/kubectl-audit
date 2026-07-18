@@ -4,24 +4,29 @@ export GO111MODULE=on
 export GOPROXY ?= https://proxy.golang.org,direct
 
 GO_PACKAGES := ./pkg/... ./cmd/...
+COVERPKG := github.com/codenio/kubectl-audit/...
 GOTESTSUM ?= gotestsum
 JUNIT_FILE := junit.xml
 COVER_FILE := cover.out
 
 .PHONY: test
 test:
-	go test $(GO_PACKAGES) -coverprofile $(COVER_FILE)
+	go test $(GO_PACKAGES) -coverprofile $(COVER_FILE) -coverpkg=$(COVERPKG)
 
 .PHONY: test-ci
 test-ci:
 	@command -v $(GOTESTSUM) >/dev/null 2>&1 || { echo "$(GOTESTSUM) not found; run: go install gotest.tools/gotestsum@v1.13.0"; exit 1; }
 	$(GOTESTSUM) --junitfile $(JUNIT_FILE) --format standard-verbose -- \
-		-coverprofile=$(COVER_FILE) -covermode=atomic \
+		-coverprofile=$(COVER_FILE) -covermode=atomic -coverpkg=$(COVERPKG) \
 		$(GO_PACKAGES)
+
+.PHONY: cover
+cover: test
+	go tool cover -func $(COVER_FILE)
 
 .PHONY: bin
 bin: fmt vet
-	go build -o bin/audit github.com/codenio/kubectl-audit/cmd/plugin
+	go build -ldflags "$(LDFLAGS)" -o bin/audit github.com/codenio/kubectl-audit/cmd/plugin
 
 .PHONY: fmt
 fmt:

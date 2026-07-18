@@ -25,6 +25,9 @@ builds:
     main: cmd/plugin/main.go
     ldflags:
       - -s -w
+      - -X github.com/codenio/kubectl-audit/pkg/version.Version={{.Tag}}
+      - -X github.com/codenio/kubectl-audit/pkg/version.GitCommit={{.ShortCommit}}
+      - -X github.com/codenio/kubectl-audit/pkg/version.BuildDate={{.Date}}
 
 archives:
   - id: audit
